@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!--
+Initial page of the Tenure Prep Form web app for System Admins. 
+Riley Hughes principle designer
+-->
+<html>
+    <head>
+        <title>Tenure Prep Form</title>
+        <link rel ="icon" href="../images/husky.png">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../styles/initialPage.css" type="text/css"/>
+        <script type="text/javascript">
+            function openTab(e, tabName) {
+                var i, tabcontent, tabbuttons;
+                
+                // Get elements with tabcontent class and hide them
+                tabcontent = document.getElementsByClassName("tabcontent");
+                for (i = 0; i < tabcontent.length; i++) {
+                    tabcontent[i].style.display = "none";
+                }
+                
+                // Get elements w/ tabbuttons class and remove active class
+                tabbuttons = document.getElementsByClassName("tabbuttons");
+                for (i = 0; i < tabbuttons.length; i++) {
+                    tabbuttons[i].className = tabbuttons[i].className.replace(" active", "");
+                }
+                
+                // Show current tab, add active class to its button
+                document.getElementById(tabName).style.display = "block";
+                e.currentTarget.className += " active";
+            }
+            function changeRole()
+            {
+                //var myTable = document.getElementById("myTable");
+                //myTable.rows[document.getElementByValue()].cells[1].innerHTML = 'Hello';
+            }
+        </script>
+    </head>
+    <body bgcolor="#F4ECD9">
+        <div class="sidetabs">
+            <button class="tabbuttons" onclick="openTab(event, 'startup')" id="hometab" name = Properties>Properties</button>
+            <button class="tabbuttons" onclick="openTab(event, 'sysad1')" name="Error Log">Error Log</button>
+            <button class="tabbuttons" onclick="openTab(event, 'sysad2')" name = "Upgrade Roles">Upgrade Roles</button>
+        </div>
+        
+        <div id="startup" class="tabcontent">
+            <h3>Welcome to the System Admin Tenure Prep Form Portal!</h3>            
+                <form id="get_users_form" action="../AdminServlet" method="POST">
+                    <input type="submit" name="getusers" value="Get Users"/>
+                </form>
+        </div>
+        
+        <div id="sysad1" class="tabcontent">
+            <h3>Error Log</h3>
+            <form id="get_logs_form" action="../AdminServlet" method="POST">
+                    <input type="submit" name="getlogs" value="Get Error Logs"/>
+                </form>
+        </div>
+        
+        <div id="sysad2" class="tabcontent">
+            <h3>Upgrade Users</h3>
+            <form id="upgrade_users_form" action="../AdminServlet" method="POST">
+            <input type="submit" name="upgradeusers" value="Upgrade Role"/>
+            </form>
+            
+        </div>
+        
+        <script type="text/javascript">
+            // Get elements with tabcontent class and hide them
+            var tabContOuter, j;
+            
+            tabContOuter = document.getElementsByClassName("tabcontent");
+            for (j = 0; j < tabContOuter.length; j++) {
+                tabContOuter[j].style.display = "none";
+            }
+            
+            // Display home tab
+            document.getElementById("hometab").click();
+        </script>
+    </body>
+</html>

@@ -1,0 +1,186 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package servlets;
+
+import common.Application;
+import common.TeachingExp;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import mysql.TeachingExpManager;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+/**
+ * MULTIPLE DEGREE OBJECTS, USE A WHILE LOOP OR A FOR LOOP TO PROCESS AND ADD
+ * TO XWPF DOCUMENT TO PRINT
+ * Steven Matos (2019)
+ */
+@WebServlet(name = "PrintTeachingFacultyServlet", urlPatterns =
+{
+    "/PrintTeachingFacultyServlet"
+})
+
+public class PrintTeachingFacultyServlet extends HttpServlet{
+/**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException 
+    {
+<<<<<<< .mine
+       TeachingExpManager teachingExpManager = new TeachingExpManager();
+       Application application = (Application) request.getSession().getAttribute("currentapp");      
+       TeachingExp tem = teachingExpManager.getTeachingExp(application.getApplicantUser());
+              
+       XWPFDocument document = new XWPFDocument();
+       
+=======
+        TeachingExpManager teachingExpManager = new TeachingExpManager();
+        Application application = (Application) request.getSession().getAttribute("currentapp");      
+        List<TeachingExp> tems = teachingExpManager.getTeachingExpsByApplication(application.getApplicationID());
+        TeachingExp tem = tems.get(0);
+
+        XWPFDocument document = new XWPFDocument();
+        
+>>>>>>> .r11745
+        XWPFParagraph institution = document.createParagraph();
+        institution.setSpacingAfter(-1);
+        institution.setSpacingBetween(1.5);
+        institution.setPageBreak(true);
+        XWPFRun bolded1 = institution.createRun();
+        bolded1.setBold(true);
+        bolded1.setText("Institution:");
+        bolded1.addTab();
+        bolded1.addTab();
+        XWPFRun info1 = institution.createRun();
+        info1.setText(tem.getInstitution());
+        
+        XWPFParagraph rank = document.createParagraph();
+        rank.setSpacingAfter(-1);
+        rank.setSpacingBefore(-1);
+        rank.setSpacingBetween(1.5);
+        XWPFRun bolded2 = rank.createRun();
+        bolded2.setBold(true);
+        bolded2.setText("Rank:");
+        bolded2.addTab();
+        bolded2.addTab();
+        bolded2.addTab();
+        XWPFRun info2 = rank.createRun();
+        info2.setText(tem.getRank());
+        
+        XWPFParagraph datesOfExp = document.createParagraph();
+        datesOfExp.setSpacingAfter(-1);
+        datesOfExp.setSpacingBefore(-1);
+        datesOfExp.setSpacingBetween(1.5);
+        XWPFRun bolded3 = datesOfExp.createRun();
+        bolded3.setBold(true);
+        bolded3.setText("Dates of Experience:");
+        bolded3.addTab();
+        XWPFRun info3 = datesOfExp.createRun();
+        info3.setText(tem.getTeachingDates());
+        
+        XWPFParagraph years = document.createParagraph();
+        years.setSpacingAfter(-1);
+        years.setSpacingBefore(-1);
+        years.setSpacingBetween(1.5);
+        XWPFRun bolded4 = years.createRun();
+        bolded4.setBold(true);
+        bolded4.setText("Years:");
+        bolded4.addTab();
+        bolded4.addTab();
+        bolded4.addTab();
+   
+ 
+        XWPFRun info4 = years.createRun();
+        info4.setText(tem.getYearsOfService() + " Years");
+        
+        XWPFParagraph status = document.createParagraph();
+        status.setSpacingAfter(-1);
+        status.setSpacingBefore(-1);
+        status.setSpacingBetween(1.5);
+        XWPFRun bolded5 = status.createRun();
+        bolded5.setBold(true);
+        bolded5.setText("Full/Part Time Status:");
+        bolded5.addTab();
+   
+        XWPFRun info5 = status.createRun();
+        if(tem.isFullTime() == true)
+            info5.setText("Full-time");
+        else
+            info5.setText("Part-time");       
+                        
+        // Set Download info
+        String relativePath = getServletContext().getRealPath("");
+        ServletContext context = getServletContext();
+        String mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        response.setContentType(mimeType);
+        String headerKey = "Content-Disposition";
+        String headerValue = String.format("attachment; filename=\"%s\"", "TeachingFaculty.docx");
+        response.setHeader(headerKey, headerValue);
+        
+        // Send the download!
+        OutputStream outStream = response.getOutputStream();
+        document.write(outStream);
+        
+        // Finish out.
+        outStream.close();
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+}    
+    
+

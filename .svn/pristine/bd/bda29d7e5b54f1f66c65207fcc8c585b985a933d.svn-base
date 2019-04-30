@@ -1,0 +1,73 @@
+package common;
+
+/**
+ * Represents an item of work experience submitted by the user.
+ * 
+ * @author Gryphon Ayers (2019)
+ */
+public class WorkExp {
+    private int workID; // primary key
+    private int application;
+    private String institution;
+    private String title;
+    private String experienceDates;
+    private boolean isFullTime;
+    private int yearsOfService;
+
+    public WorkExp(int workID) {
+        this.workID = workID;
+    }
+
+    public int getApplication() {
+        return application;
+    }
+
+    public void setApplication(int application) {
+        this.application = application;
+    }
+
+    public String getInstitution() {
+        return institution;
+    }
+
+    public void setInstitution(String institution) {
+        this.institution = institution;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getExperienceDates() {
+        return experienceDates;
+    }
+
+    public void setExperienceDates(String experienceDates) {
+        this.experienceDates = experienceDates;
+    }
+
+    public boolean isFullTime() {
+        return isFullTime;
+    }
+
+    public void setIsFullTime(boolean isFullTime) {
+        this.isFullTime = isFullTime;
+    }
+
+    public int getWorkID() {
+        return workID;
+    }
+
+    public int getYearsOfService() {
+        return yearsOfService;
+    }
+
+    public void setYearsOfService(int yearsOfService) {
+        this.yearsOfService = yearsOfService;
+    }
+    
+}

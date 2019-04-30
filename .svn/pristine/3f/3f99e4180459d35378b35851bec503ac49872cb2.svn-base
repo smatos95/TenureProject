@@ -1,0 +1,263 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package servlets;
+
+import common.Application;
+import common.Profile;
+import java.io.IOException;
+import java.io.OutputStream;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import mysql.ProfileManager;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+
+/**
+ *
+ * @author Jake Gordon (2019)
+ */
+@WebServlet(name = "PrintFirstPageServlet", urlPatterns =
+{
+    "/PrintFirstPageServlet"
+})
+public class PrintFirstPageServlet extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException 
+    {
+       ProfileManager profileManager = new ProfileManager();
+       Application application = (Application) request.getSession().getAttribute("currentapp");
+       Profile profile = profileManager.getProfileByUserID(application.getApplicantUser());
+       
+       XWPFDocument document = new XWPFDocument();
+       
+        XWPFParagraph firstPage1 = document.createParagraph();
+        firstPage1.setSpacingAfter(-1);
+        firstPage1.setSpacingBetween(1.5);
+        firstPage1.setPageBreak(true);
+        XWPFRun bolded1 = firstPage1.createRun();
+        bolded1.setBold(true);
+        bolded1.setText("Name:");
+        bolded1.addTab();
+        bolded1.addTab();
+        bolded1.addTab();
+        bolded1.addTab();
+        bolded1.addTab();
+        bolded1.addTab();
+        bolded1.addTab();
+        bolded1.addTab();
+        XWPFRun info1 = firstPage1.createRun();
+        info1.setText(application.getCustomFirstName() + " " + application.getCustomLastName());
+        
+        XWPFParagraph firstPage2 = document.createParagraph();
+        firstPage2.setSpacingAfter(-1);
+        firstPage2.setSpacingBefore(-1);
+        firstPage2.setSpacingBetween(1.5);
+        XWPFRun bolded2 = firstPage2.createRun();
+        bolded2.setBold(true);
+        bolded2.setText("Phone:");
+        bolded2.addTab();
+        bolded2.addTab();
+        bolded2.addTab();
+        bolded2.addTab();
+        bolded2.addTab();
+        bolded2.addTab();
+        bolded2.addTab();
+        bolded2.addTab();
+        XWPFRun info2 = firstPage2.createRun();
+        info2.setText(profile.getCampusPhone());
+        
+        XWPFParagraph firstPage3 = document.createParagraph();
+        firstPage3.setSpacingAfter(-1);
+        firstPage3.setSpacingBefore(-1);
+        firstPage3.setSpacingBetween(1.5);
+        XWPFRun bolded3 = firstPage3.createRun();
+        bolded3.setBold(true);
+        bolded3.setText("Rank Being Requested:");
+        bolded3.addTab();
+        bolded3.addTab();
+        bolded3.addTab();
+        bolded3.addTab();
+        bolded3.addTab();
+        bolded3.addTab();
+        XWPFRun info3 = firstPage3.createRun();
+        info3.setText(profile.getRank());
+        
+        XWPFParagraph firstPage4 = document.createParagraph();
+        firstPage4.setSpacingAfter(-1);
+        firstPage4.setSpacingBefore(-1);
+        firstPage4.setSpacingBetween(1.5);
+        XWPFRun bolded4 = firstPage4.createRun();
+        bolded4.setBold(true);
+        bolded4.setText("Department:");
+        bolded4.addTab();
+        bolded4.addTab();
+        bolded4.addTab();
+        bolded4.addTab();
+        bolded4.addTab();
+        bolded4.addTab();
+        bolded4.addTab();
+        XWPFRun info4 = firstPage4.createRun();
+        info4.setText(application.getDepartment());
+        
+        XWPFParagraph firstPage5 = document.createParagraph();
+        firstPage5.setSpacingAfter(-1);
+        firstPage5.setSpacingBefore(-1);
+        firstPage5.setSpacingBetween(1.5);
+        XWPFRun bolded5 = firstPage5.createRun();
+        bolded5.setBold(true);
+        bolded5.setText("Chairperson:");
+        bolded5.addTab();
+        bolded5.addTab();
+        bolded5.addTab();
+        bolded5.addTab();
+        bolded5.addTab();
+        bolded5.addTab();
+        bolded5.addTab();
+        XWPFRun info5 = firstPage5.createRun();
+        info5.setText(application.getDepartmentChair());
+        
+        XWPFParagraph firstPage6 = document.createParagraph();
+        firstPage6.setSpacingAfter(-1);
+        firstPage6.setSpacingBefore(-1);
+        firstPage6.setSpacingBetween(1.5);
+        XWPFRun bolded6 = firstPage6.createRun();
+        bolded6.setBold(true);
+        bolded6.setText("Chairperson Phone Number:");
+        bolded6.addTab();
+        bolded6.addTab();
+        bolded6.addTab();
+        bolded6.addTab();
+        bolded6.addTab();
+        XWPFRun info6 = firstPage6.createRun();
+        info6.setText(application.getChairPhone());
+        
+        XWPFParagraph firstPage7 = document.createParagraph();
+        firstPage7.setSpacingAfter(-1);
+        firstPage7.setSpacingBefore(-1);
+        firstPage7.setSpacingBetween(1.5);
+        XWPFRun bolded7 = firstPage7.createRun();
+        bolded7.setBold(true);
+        bolded7.setText("Date of Appointment to BU:");
+        bolded7.addTab();
+        bolded7.addTab();
+        bolded7.addTab();
+        bolded7.addTab();
+        bolded7.addTab();
+        XWPFRun info7 = firstPage7.createRun();
+        info7.setText("Today I guess");
+        
+        XWPFParagraph firstPage8 = document.createParagraph();
+        firstPage8.setSpacingAfter(-1);
+        firstPage8.setSpacingBefore(-1);
+        firstPage8.setSpacingBetween(1.5);
+        XWPFRun bolded8 = firstPage8.createRun();
+        bolded8.setBold(true);
+        bolded8.setText("Total Anticipated Years of Academic Service:");
+        bolded8.addTab();
+        bolded8.addTab();
+        bolded8.addTab();
+        XWPFRun info8 = firstPage8.createRun();
+        info8.setText(Integer.toString(profile.getYearsOfService()));
+        
+        XWPFParagraph firstPage9 = document.createParagraph();
+        firstPage9.setSpacingAfter(-1);
+        firstPage9.setSpacingBefore(-1);
+        firstPage9.setSpacingBetween(1.5);
+        XWPFRun bolded9 = firstPage9.createRun();
+        bolded9.setBold(true);
+        bolded9.setText("Date of Last Promotion at BU:");
+        bolded9.addTab();
+        bolded9.addTab();
+        bolded9.addTab();
+        bolded9.addTab();
+        bolded9.addTab();
+        XWPFRun info9 = firstPage9.createRun();
+        info9.setItalic(true);
+        info9.setText("Not Applicable");
+        
+        XWPFParagraph firstPage10 = document.createParagraph();
+        firstPage10.setSpacingAfter(-1);
+        firstPage10.setSpacingBefore(-1);
+        firstPage10.setSpacingBetween(1.5);
+        XWPFRun bolded10 = firstPage10.createRun();
+        bolded10.setBold(true);
+        bolded10.setText("Date Application Submitted to Department Chairperson:");
+        bolded10.addTab();
+        XWPFRun info10 = firstPage10.createRun();
+        info10.setText("March 22, 2019");
+        
+        // Set Download info
+        String relativePath = getServletContext().getRealPath("");
+        ServletContext context = getServletContext();
+        String mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        response.setContentType(mimeType);
+        String headerKey = "Content-Disposition";
+        String headerValue = String.format("attachment; filename=\"%s\"", "FirstPage.docx");
+        response.setHeader(headerKey, headerValue);
+        
+        // Send the download!
+        OutputStream outStream = response.getOutputStream();
+        document.write(outStream);
+        
+        // Finish out.
+        outStream.close();
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+}

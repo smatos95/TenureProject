@@ -1,0 +1,208 @@
+package mysql;
+
+import common.WorkExp;
+import database.SQLUtility;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.logging.Level;
+import utilities.WebErrorLogger;
+
+
+public class WorkExpManager implements database.WorkExpManager {
+
+    @Override
+    public WorkExp getWorkExp(int workID) {
+        String sql = "SELECT * FROM workexp WHERE workID = ? ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        WorkExp loc;
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, workID);
+
+            rs = stmt2.executeQuery();
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closePreparedStatement(stmt2);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            loc = SQLUtility.convertResultSetToWorkExp(rs);
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getDegree(int degreeID) "
+                    + "workExpID="+workID + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return loc;
+    }
+
+    @Override
+    public List<WorkExp> getWorkExpsByApplication(int application) {
+        String sql = "SELECT * FROM workexp WHERE application = ? ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        LinkedList<WorkExp> locs = new LinkedList<>();
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, application);
+
+            rs = stmt2.executeQuery();
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closePreparedStatement(stmt2);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            do {
+                WorkExp loc = SQLUtility.convertResultSetToWorkExp(rs);
+                locs.add(loc);
+            } while(rs.next());
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getDegree(int degreeID) "
+                    + "application="+application + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return locs;
+    }
+
+    @Override
+    public boolean insertWorkExp(WorkExp workExp) {
+        String sql = "INSERT INTO `Tenure`.`workexp` "
+                + "(`application`, `institution`, `title`, "
+                + "`experienceDates`, `yearsOfService`, `isFullTime`) "
+                + "VALUES (?, ?, ?, ?, ?, ?);";
+        boolean returnValue;
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, workExp.getApplication());
+            stmt2.setString(2, workExp.getInstitution());
+            stmt2.setString(3, workExp.getTitle());
+            stmt2.setString(4, workExp.getExperienceDates());
+            stmt2.setInt(5, workExp.getYearsOfService());
+            stmt2.setBoolean(6, workExp.isFullTime());
+            
+            returnValue = stmt2.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in insertDegree(Degree degree) " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return false;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        return returnValue;
+    }
+
+    @Override
+    public WorkExp updateWorkExp(WorkExp workExp) {
+        String sql = "UPDATE workexp SET application=?, "
+                + "institution=?, title=?, experienceDates=?, "
+                + "yearsOfService=?, isFullTime=? "
+                + "WHERE workID=?;";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, workExp.getApplication());
+            stmt2.setString(2, workExp.getInstitution());
+            stmt2.setString(3, workExp.getTitle());
+            stmt2.setString(4, workExp.getExperienceDates());
+            stmt2.setInt(5, workExp.getYearsOfService());
+            stmt2.setBoolean(6, workExp.isFullTime());
+            stmt2.setInt(7, workExp.getWorkID());
+            
+            stmt2.executeUpdate();
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in updateWorkExp(WorkExp workExp) " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        
+        return getWorkExp(workExp.getWorkID());
+    }
+
+    @Override
+    public boolean deleteWorkExp(int workExpID) {
+        String sql = "DELETE FROM workexp WHERE workID = ?;";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        boolean returnValue;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, workExpID);
+            
+            returnValue = stmt2.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in deleteWorkExp(WorkExp workExp) " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return false;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        
+        return returnValue;
+    }
+
+    @Override
+    public List<WorkExp> getAllWorkExps() {
+        String sql = "SELECT * FROM workexp ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        LinkedList<WorkExp> locs = new LinkedList<>();
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+
+            rs = stmt.executeQuery(sql);
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closeStatement(stmt);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            do {
+                WorkExp loc = SQLUtility.convertResultSetToWorkExp(rs);
+                locs.add(loc);
+            } while(rs.next());
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getAllWorkExps() "
+                    + " error: " + ex);
+            Web_MYSQL_Helper.closeStatement(stmt);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closeStatement(stmt);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return locs;
+    }
+    
+}

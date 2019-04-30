@@ -1,0 +1,290 @@
+package mysql;
+
+import common.Media;
+import database.SQLUtility;
+import java.io.BufferedOutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import utilities.WebErrorLogger;
+
+/**
+ * Represents a manager for the <code>Media</code> object, which 
+ * implements the <code>MediaManager</code> interface.
+ * 
+ * @author Gryphon Ayers (2019)
+ */
+ public class MediaManager implements database.MediaManager {
+    
+     /**
+     * Returns the <code>Media</code> object corresponding to the 
+     * provided primary key in the user's database.
+     * 
+     * @param mediaID The primary key of the media to fetch from
+     * the user's database.
+     * @return An <code>Media</code> object which corresponds to the 
+     * media with the provided primary key in the user's database.
+     */
+    @Override
+    public Media getMedia(int mediaID) {
+        String sql = "SELECT * FROM media WHERE mediaID = ? ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        Media med;
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, mediaID);
+
+            rs = stmt2.executeQuery();
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closePreparedStatement(stmt2);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            med = SQLUtility.convertResultSetToMedia(rs);
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getMedia(int mediaID) "
+                    + "mediaID="+mediaID + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return med;
+    }
+
+    /**
+     * Returns a <code>Media</code> object derived from the provided
+     * primary key in the user's database, but without retrieving the literal 
+     * file data. This is useful for pages where the metadata of a media file is
+     * required, but not the contents of the file.
+     * 
+     * @param mediaID The primary key of the media to fetch from
+     * the user's database.
+     * @return An <code>Media</code> object which derived the 
+     * media with the provided primary key in the user's database.
+     */
+    @Override
+    public Media getUnhydratedMedia(int mediaID) {
+        String sql = "SELECT * FROM media WHERE mediaID = ? ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        Media med;
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, mediaID);
+
+            rs = stmt2.executeQuery();
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closePreparedStatement(stmt2);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            med = SQLUtility.convertResultSetToMediaUnhydrated(rs);
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getUnhydratedMedia(int mediaID) "
+                    + "mediaID="+mediaID + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return med;
+    }
+
+    /**
+     * Retrieves the media file contents associated with the given media record
+     * in the database. Use this function to retrieve the media contents of a 
+     * <code>Media</code> object retrieved by the getUnhydratedMedia() function.
+     * @param media the <code>Media</code> object to hydrate
+     * @return true if the file retrieval was successful, false otherwise
+     */
+    @Override
+    public boolean hydrateMedia(Media media) {
+        String sql = "SELECT mediaFile FROM media WHERE mediaID = ? ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, media.getMediaID());
+
+            rs = stmt2.executeQuery();
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closePreparedStatement(stmt2);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return false;
+            }
+            media.setMediaFile(rs.getBytes("mediaFile"));
+            
+            rs.close();
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in hydrateMedia(Media media) "
+                    + "mediaID="+media.getMediaID() + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return false;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return true;
+    }
+
+    @Override
+    public boolean insertMedia(Media media) {
+        if(media.getMediaFile() == null) { // check if media is hydrated
+            return false;
+        }
+        
+        String sql = "INSERT INTO `Tenure`.`media` "
+                + "(`mediaFile`, `mediaFilename`, `mediaName`, "
+                + "`creationDate`, `mediaHash`) "
+                + "VALUES (?, ?, ?, ?, ?);";
+        boolean returnValue;
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        try {
+            MessageDigest digester = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digester.digest(media.getMediaFile());
+            // https://stackoverflow.com/a/9855338
+            char[] hexArray = "0123456789ABCDEF".toCharArray();
+            char[] hexChars = new char[hash.length * 2];
+            for ( int j = 0; j < hash.length; j++ ) {
+                int v = hash[j] & 0xFF;
+                hexChars[j * 2] = hexArray[v >>> 4];
+                hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+            }
+            
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setBytes(1, media.getMediaFile());
+            stmt2.setString(2, media.getMediaFilename());
+            stmt2.setString(3, media.getMediaName());
+            stmt2.setString(4, media.getCreationDate().toString());
+            stmt2.setString(5, new String(hexChars));
+            
+            returnValue = stmt2.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in insertDegree(Degree degree) " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return false;
+        } catch (NoSuchAlgorithmException ex) {
+            WebErrorLogger.log(Level.SEVERE, "NoSuchAlgorithmException in insertDegree(Degree degree) " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return false;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        return returnValue;
+    }
+    
+    @Override
+    public boolean deleteMedia(Media media) {
+        String sql = "DELETE FROM media WHERE mediaID = ?;";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        boolean returnValue;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, media.getMediaID());
+            
+            returnValue = stmt2.executeUpdate() > 0;
+            
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in deleteMedia(Media media) " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return false;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        
+        return returnValue;
+    }
+
+    @Override
+    public boolean deleteMediaByID(int mediaID) {
+        String sql = "DELETE FROM media WHERE mediaID = ?;";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        boolean returnValue;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, mediaID);
+            
+            returnValue = stmt2.executeUpdate() > 0;
+            
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in deleteMedia(int mediaID) " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return false;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        
+        return returnValue;
+    }
+
+    @Override
+    public Collection<Media> getAllMedias() {
+        String sql = "SELECT * FROM media ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        LinkedList<Media> meds = new LinkedList<>();
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+
+            rs = stmt.executeQuery(sql);
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closeStatement(stmt);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            while(rs.next()) {
+                Media med = SQLUtility.convertResultSetToMedia(rs);
+                meds.add(med);
+            }
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getAllMedias() "
+                    + " error: " + ex);
+            Web_MYSQL_Helper.closeStatement(stmt);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closeStatement(stmt);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return meds;
+    }
+}

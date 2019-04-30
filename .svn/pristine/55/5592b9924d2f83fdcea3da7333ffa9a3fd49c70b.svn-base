@@ -1,0 +1,119 @@
+<%-- 
+    Document   : coverpage
+    Created on : Feb 24, 2019, 2:05:23 PM
+               : Shane Panagakos (2019)
+    Author     : Jake Gordon (2019)
+--%>
+
+<%@page import="common.Profile"%>
+<%@page import="mysql.ProfileManager"%>
+<%@page import="common.Application"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Tenure Prep Form</title>
+        <link rel ="icon" href="../images/husky.png">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+    </head>
+    <body bgcolor="#F4ECD9">
+         <% HttpSession session1 = request.getSession(true);
+                    common.BuUser use = (common.BuUser) session1.getAttribute("user");
+                    Application a = (Application) session1.getAttribute("currentapp");
+                    
+                    ProfileManager pm = new ProfileManager();
+                    Profile p = pm.getProfileByUserID(use.getUserNumber());
+                    
+                    String first;
+                    String last;
+                    String rank;
+                    String dept;
+                    
+                    if (a == null)
+                    {
+                        first = use.getFirstName();
+                        last = use.getLastName();
+                        dept = "";
+                    }
+                    else
+                    {
+                        if (!((first = a.getCustomFirstName()) != null))
+                            first = use.getFirstName();
+                        if (!((last = a.getCustomLastName()) != null))
+                            last = use.getLastName();
+                        if (!((dept = a.getDepartment()) != null))
+                            dept = "";
+                    }
+                    
+                    if (p == null) {
+                        rank = "Select a Rank";
+                    } else {
+                        if (!((rank = p.getRank()) != null))
+                            rank = "Select a Rank";
+                    }
+                    %>
+                    <jsp:include page="sideTabs.jsp"/>
+                    <script>
+                        document.getElementsByName("cover")[0].className = "tabbuttons active";
+                    </script>
+        
+        <div id="coverpage" class="tabcontent">
+
+            <div class="paper">
+                <div class="generalHeaderFont pageTitle">Cover Page</div>
+                <form id="update_cover_page_form" action="UpdateCoverPageServlet" method="POST">
+                <div class="dataField">First Name
+                    <input id="firstname" type="text" name="customfirst" class="generalTextboxStyle" value=<%=first%>>
+                </div>
+                <div class="dataField">Last Name
+                    <input id="lastname" type="text" name="customlast" class="generalTextboxStyle" value=<%=last%>>
+                </div>
+                <div class="dataField">Current Rank
+                    <select name="rank" class="generalTextboxStyle">
+                        <option value="Select a Rank" <%if (rank.equals("Select a Rank")){%> selected="selected"<%}%>>Select a Rank</option>
+                        <option value="Instructor" <%if (rank.equals("Instructor")){%> selected="selected"<%}%>>Instructor</option>
+                        <option value="Assistant Professor" <%if (rank.equals("Assistant Professor")){%> selected="selected"<%}%>>Assistant Professor</option>
+                        <option value="Associate Professor" <%if (rank.equals("Associate Professor")){%> selected="selected"<%}%>>Associate Professor</option>
+                    </select>
+                </div>
+                <div class="dataField">Name of Department
+                    <input id="departmentName" type ="text" name="deptname" class="generalTextboxStyle" value=<%=dept%>>
+                </div>
+                <!--Save button-->
+                
+                <input type="submit" name="submit" value="SAVE"/>
+                <hr>
+                <input type="submit" name="first" value="CONTINUE"/>
+                </form>
+                <!--Skip Button-->
+                <form id='redirct_page' action='RedirectServlet' method='POST'>
+                    <input type="submit" name="home" value="BACK"/>  
+                    <input type="submit" name="first" value="Skip"/>
+                                
+                </form>
+            
+                </div>
+        </div>
+                <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+                    
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }           
+        </script>
+    </body>
+</html>

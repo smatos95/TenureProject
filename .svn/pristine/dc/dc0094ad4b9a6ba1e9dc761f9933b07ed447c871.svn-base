@@ -1,0 +1,85 @@
+<%-- 
+    Document   : teachingFaculty
+    Created on : Feb 24, 2019, 2:05:23 PM
+               : Shane Panagakos (2019)
+    Author     : Jake Gordon (2019)
+--%>
+
+<%@page import="common.Application"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Tenure Prep Form</title>
+        <link rel ="icon" href="../images/husky.png">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+    </head>
+    <body bgcolor="#F4ECD9">
+        <% /*HttpSession session1 = request.getSession(true);
+            common.BuUser use = (common.BuUser) session1.getAttribute("user");*/
+            Application a = (Application) request.getSession().getAttribute("currentapp");
+
+        %>
+        <jsp:include page="sideTabs.jsp"/>
+        <script>
+            document.getElementsByName("dropbutton")[0].className = "dropdown-btn active";
+            document.getElementsByName("teachFac")[0].className = "inDropdown active";
+        </script>
+        <div id="teaching" class="tabcontent">
+            <div class="paper">
+                <div class="generalHeaderFont">Teaching & Faculty Background</div>
+                    <div>List the following information for the Institution(s) you have taught at:</div>
+                    <div class="dataField">Institution
+                        <input type="text" name="teachingInstitution" class="generalTextboxStyle"/>
+                    </div>
+                    <div class="dataField">Rank
+                        <select name="teachingRank" class="generalTextboxStyle">
+                            <option>Select your Rank</option>
+                        </select>
+                    </div>
+                    <div class="dataField">From 
+                        <input type="date" name="teachingFrom" class="generalTextboxStyle"/>
+                    </div>
+                    <div class="dataField">To
+                        <input type="date" name="teachingTo" class="generalTextboxStyle"/>
+                    </div>
+                    <div class="dataField">Total Number of Years
+                        <input type="number" name="teachingYears" min="0" max="70" class="generalTextboxStyle"/>
+                    </div>
+                    <div class="dataField">Status
+                        <input type="radio" name="teachingStatus"/>Full-time
+                        <input type="radio" name="teachingStatus"/>Part-time
+                    </div>
+                    <form id='redirct_page' action='RedirectServlet' method='POST'>
+                        <!--back button-->
+                        <span><input type="submit" name="eduCred" value="BACK"/>
+                            <!--next button-->
+                    <input type="submit" name="workExp" value="CONTINUE"/></span>
+                        <input type="submit" name="workExp" value="Skip"/>
+                </form>
+            </div>
+        </div>  
+
+        <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>

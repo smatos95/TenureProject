@@ -1,0 +1,58 @@
+package utilities;
+
+import common.Application;
+import common.Profile;
+import mysql.ProfileManager;
+import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+
+/**
+ *
+ * @author Riley Hughes (2019)
+ */
+public class POICoverPage {
+    private String customName;
+    private String rank;
+    private String department;
+    private Application app;
+    
+    public POICoverPage(Application appli) {
+        ProfileManager pm = new ProfileManager();
+        Profile profile = pm.getProfileByUserID(appli.getApplicantUser());
+        app = appli;
+        
+        customName = app.getCustomFirstName() + " " + app.getCustomLastName();
+        rank = profile.getRank();
+        department = app.getDepartment();
+    }
+    
+    public XWPFDocument generateDoc() {
+        XWPFDocument d = new XWPFDocument();
+        XWPFParagraph title = d.createParagraph();
+        title.setAlignment(ParagraphAlignment.CENTER);
+        XWPFRun titleRun = title.createRun();
+        titleRun.addCarriageReturn();
+        titleRun.addCarriageReturn();
+        titleRun.addCarriageReturn();
+        titleRun.setText(customName);
+        titleRun.setFontFamily("Cambria");
+        titleRun.setFontSize(40);
+        
+        XWPFParagraph subtitle = d.createParagraph();
+        XWPFRun subtitleRun2 = subtitle.createRun();
+        subtitleRun2.setText(rank);
+        subtitleRun2.setFontFamily("Cambria");
+        subtitleRun2.setFontSize(22);
+        subtitleRun2.addCarriageReturn();
+        
+        subtitle.setAlignment(ParagraphAlignment.CENTER);
+        XWPFRun subtitleRun = subtitle.createRun();
+        subtitleRun.setText(department);
+        subtitleRun.setFontFamily("Cambria");
+        subtitleRun.setFontSize(22);
+        
+        return d;
+    }
+}

@@ -1,0 +1,273 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package servlets;
+
+import common.Application;
+import common.WorkExp;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import mysql.WorkExpManager;
+import org.apache.poi.xwpf.model.XWPFHeaderFooterPolicy;
+import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTP;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STHdrFtr;
+
+/**
+ *
+ * @author Jake Gordon (2019)
+ */
+@WebServlet(name = "PrintOtherWorkExperienceServlet", urlPatterns =
+{
+    "/PrintOtherWorkExperienceServlet"
+})
+public class PrintOtherWorkExperienceServlet extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException 
+    {
+        WorkExpManager workManager = new WorkExpManager();
+        Application application = (Application) request.getSession().getAttribute("currentapp");
+        List<WorkExp> workExps = workManager.getWorkExpsByApplication(application.getApplicationID());
+        
+        XWPFParagraph[][] workExpPara = new XWPFParagraph[1][5];
+        XWPFRun[][] workExpRuns = new XWPFRun[1][10];
+        String[] datesOfExp = new String[2];
+        WorkExp workExp = new WorkExp(0);
+        
+        if (workExps != null && workExps.isEmpty() == false) {
+            workExpPara = new XWPFParagraph[workExps.size()][5];
+            workExpRuns = new XWPFRun[workExps.size()][10];
+            workExp = workExps.get(0);
+        }
+        
+        XWPFDocument document = new XWPFDocument();
+        
+        CTP ctp = CTP.Factory.newInstance();
+        // this adds page number incremental
+        CTR r = ctp.addNewR();
+        if (application.getCustomFirstName() != null && application.getCustomLastName() != null)
+            r.addNewT().setStringValue(application.getCustomFirstName() + " " + application.getCustomLastName() + " 1-");
+        else
+            r.addNewT().setStringValue("Your Name 1-");
+        r.addNewPgNum();
+        
+        CTP ctp2 = CTP.Factory.newInstance();
+        CTR r2 = ctp2.addNewR();
+        r2.addNewT().setStringValue("Background Information");
+
+        XWPFParagraph codePara = new XWPFParagraph(ctp, document);
+        codePara.setSpacingAfter(0);
+        codePara.setSpacingBefore(0);
+        codePara.setSpacingBetween(1);
+        XWPFParagraph codePara2 = new XWPFParagraph(ctp2, document);
+        codePara2.setSpacingAfter(0);
+        codePara2.setSpacingBefore(0);
+        codePara2.setSpacingBetween(1);
+        XWPFRun xrun = codePara2.getRun(r2);
+        xrun.setBold(true);
+        xrun.addCarriageReturn();
+        XWPFParagraph[] paragraphs = new XWPFParagraph[2];
+        paragraphs[0] = codePara;
+        paragraphs[1] = codePara2;
+        // position of number
+        codePara.setAlignment(ParagraphAlignment.RIGHT);
+        codePara2.setAlignment(ParagraphAlignment.RIGHT);
+
+        CTSectPr sectPr = document.getDocument().getBody().addNewSectPr();
+
+        XWPFHeaderFooterPolicy headerFooterPolicy = new XWPFHeaderFooterPolicy(document, sectPr);
+        headerFooterPolicy.createHeader(STHdrFtr.DEFAULT, paragraphs);
+        
+        XWPFParagraph workExpTitle = document.createParagraph();
+        workExpTitle.setSpacingAfter(0);
+        workExpTitle.setSpacingBefore(0);
+        workExpTitle.setSpacingBetween(2);
+        XWPFRun workExpRun = workExpTitle.createRun();
+        workExpRun.setText("C.");
+        XWPFRun workExpRun2 = workExpTitle.createRun();
+        workExpRun2.setBold(true);
+        workExpRun2.setText("   Other Work Experience");
+        
+        if (workExps != null) {
+            for (int i = 0; i < workExpPara.length; i++) {
+                workExp = workExps.get(i);
+
+                workExpPara[i][0] = document.createParagraph();
+                workExpPara[i][0].setSpacingAfter(0);
+                workExpPara[i][0].setSpacingBefore(0);
+                workExpPara[i][0].setSpacingBetween(1);
+                workExpRuns[i][0] = workExpPara[i][0].createRun();
+                workExpRuns[i][0].addTab();
+                workExpRuns[i][0].setBold(true);
+                workExpRuns[i][0].setText("Institution:");
+                workExpRuns[i][0].addTab();
+                workExpRuns[i][0].addTab();
+                workExpRuns[i][1] = workExpPara[i][0].createRun();
+                if (workExp.getInstitution() != null)
+                    workExpRuns[i][1].setText(workExp.getInstitution());
+                else
+                    workExpRuns[i][1].setText("Your Institution Here");
+
+                workExpPara[i][1] = document.createParagraph();
+                workExpPara[i][1].setSpacingAfter(0);
+                workExpPara[i][1].setSpacingBefore(0);
+                workExpPara[i][1].setSpacingBetween(1);
+                workExpRuns[i][2] = workExpPara[i][1].createRun();
+                workExpRuns[i][2].addTab();
+                workExpRuns[i][2].setBold(true);
+                workExpRuns[i][2].setText("Title:");
+                workExpRuns[i][2].addTab();
+                workExpRuns[i][2].addTab();
+                workExpRuns[i][2].addTab();
+                workExpRuns[i][3] = workExpPara[i][1].createRun();
+                if (workExp.getTitle() != null)
+                    workExpRuns[i][3].setText(workExp.getTitle());
+                else
+                    workExpRuns[i][3].setText("Your Title Here");
+
+                workExpPara[i][2] = document.createParagraph();
+                workExpPara[i][2].setSpacingAfter(0);
+                workExpPara[i][2].setSpacingBefore(0);
+                workExpPara[i][2].setSpacingBetween(1);
+                workExpRuns[i][4] = workExpPara[i][2].createRun();
+                workExpRuns[i][4].addTab();
+                workExpRuns[i][4].setBold(true);
+                workExpRuns[i][4].setText("Dates of Experience:");
+                workExpRuns[i][4].addTab();
+                workExpRuns[i][5] = workExpPara[i][2].createRun();
+                if (workExp.getExperienceDates() != null) {
+                datesOfExp = utilities.FormattingUtility.dateRangeConvert(workExp.getExperienceDates());
+                workExpRuns[i][5].setText(utilities.FormattingUtility.formatMonthyear(datesOfExp[0]) 
+                        + " - " + utilities.FormattingUtility.formatMonthyear(datesOfExp[1]));
+                } else {
+                    workExpRuns[i][5].setText("Your Dates of Experience Here");
+                }
+
+                workExpPara[i][3] = document.createParagraph();
+                workExpPara[i][3].setSpacingAfter(0);
+                workExpPara[i][3].setSpacingBefore(0);
+                workExpPara[i][3].setSpacingBetween(1);
+                workExpRuns[i][6] = workExpPara[i][3].createRun();
+                workExpRuns[i][6].addTab();
+                workExpRuns[i][6].setBold(true);
+                workExpRuns[i][6].setText("Years:");
+                workExpRuns[i][6].addTab();
+                workExpRuns[i][6].addTab();
+                workExpRuns[i][6].addTab();
+                workExpRuns[i][7] = workExpPara[i][3].createRun();
+                if (workExp.getYearsOfService() != 0) {
+                    if (workExp.getYearsOfService() > 1)
+                        workExpRuns[i][7].setText(workExp.getYearsOfService() + " Years");
+                    else
+                        workExpRuns[i][7].setText(workExp.getYearsOfService() + " Year");
+                } else
+                    workExpRuns[i][7].setText("Your Years of Experience Here");
+
+                workExpPara[i][4] = document.createParagraph();
+                workExpPara[i][4].setSpacingAfter(0);
+                workExpPara[i][4].setSpacingBefore(0);
+                workExpPara[i][4].setSpacingBetween(1);
+                workExpRuns[i][8] = workExpPara[i][4].createRun();
+                workExpRuns[i][8].addTab();
+                workExpRuns[i][8].setBold(true);
+                workExpRuns[i][8].setText("Full/Part Time Status:");
+                workExpRuns[i][8].addTab();
+                workExpRuns[i][9] = workExpPara[i][4].createRun();
+                if (workExp.isFullTime() == true)
+                    workExpRuns[i][9].setText("Full Time");
+                else
+                    workExpRuns[i][9].setText("Part Time");
+                workExpRuns[i][9].addCarriageReturn();
+            }
+        } else {
+            XWPFParagraph notAppl = document.createParagraph();
+            notAppl.setSpacingAfter(0);
+            notAppl.setSpacingBefore(0);
+            notAppl.setSpacingBetween(1);
+            XWPFRun run = notAppl.createRun();
+            run.addTab();
+            run.setItalic(true);
+            run.setText("Not Applicable");
+        }
+                        
+        // Set Download info
+        String relativePath = getServletContext().getRealPath("");
+        ServletContext context = getServletContext();
+        String mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        response.setContentType(mimeType);
+        String headerKey = "Content-Disposition";
+        String headerValue = String.format("attachment; filename=\"%s\"", "OtherWorkExperience.docx");
+        response.setHeader(headerKey, headerValue);
+        
+        // Send the download!
+        OutputStream outStream = response.getOutputStream();
+        document.write(outStream);
+        
+        // Finish out.
+        outStream.close();
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+}

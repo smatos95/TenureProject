@@ -1,0 +1,19 @@
+function updateFirstNameCharCount()
+{
+        var currentCountLabel = document.getElementById("FirstNameCurrent"),
+        lengthOfText = document.getElementById("firstname").value.length;
+        currentCountLabel.innerHTML = lengthOfText;
+}
+function updateLastNameCharCount()
+{
+        var currentCountLabel = document.getElementById("LastNameCurrent"),
+        lengthOfText = document.getElementById("lastname").value.length;
+        currentCountLabel.innerHTML = lengthOfText;
+}
+function updateNameOfDepartmentCharCount()
+{
+        var currentCountLabel = document.getElementById("NameOfDepartmentCurrent"),
+        lengthOfText = document.getElementById("departmentName").value.length;
+        currentCountLabel.innerHTML = lengthOfText;
+}
+

@@ -1,0 +1,126 @@
+package servlets;
+
+import common.Application;
+import common.Profile;
+import java.io.IOException;
+import java.io.OutputStream;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import mysql.ProfileManager;
+import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+
+/**
+ *
+ * @author Riley Hughes (2019)
+ */
+@WebServlet(name = "PrintCoverPageServlet", urlPatterns =
+{
+    "/PrintCoverPageServlet"
+})
+public class PrintCoverPageServlet extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
+        ProfileManager pm = new ProfileManager();
+        Application a = (Application) request.getSession().getAttribute("currentapp");
+        Profile p = pm.getProfileByUserID(a.getApplicantUser());
+        
+        // Create formatted Cover Page using Apache POI Library
+        XWPFDocument d = new XWPFDocument();
+        XWPFParagraph title = d.createParagraph();
+        title.setAlignment(ParagraphAlignment.CENTER);
+        XWPFRun titleRun = title.createRun();
+        titleRun.addCarriageReturn();
+        titleRun.addCarriageReturn();
+        titleRun.addCarriageReturn();
+        titleRun.setText(a.getCustomFirstName() + " " + a.getCustomLastName());
+        titleRun.setFontFamily("Cambria");
+        titleRun.setFontSize(40);
+        
+        XWPFParagraph subtitle = d.createParagraph();
+        XWPFRun subtitleRun2 = subtitle.createRun();
+        subtitleRun2.setText(p.getRank());
+        subtitleRun2.setFontFamily("Cambria");
+        subtitleRun2.setFontSize(22);
+        subtitleRun2.addCarriageReturn();
+        
+        subtitle.setAlignment(ParagraphAlignment.CENTER);
+        XWPFRun subtitleRun = subtitle.createRun();
+        subtitleRun.setText(a.getDepartment());
+        subtitleRun.setFontFamily("Cambria");
+        subtitleRun.setFontSize(22);
+        
+        // Set Download info
+        String relativePath = getServletContext().getRealPath("");
+        ServletContext context = getServletContext();
+        String mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        response.setContentType(mimeType);
+        String headerKey = "Content-Disposition";
+        String headerValue = String.format("attachment; filename=\"%s\"", "CoverPage.docx");
+        response.setHeader(headerKey, headerValue);
+        
+        // Send the download!
+        OutputStream outStream = response.getOutputStream();
+        d.write(outStream);
+        
+        // Finish out.
+        outStream.close();
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+}

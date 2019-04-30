@@ -1,0 +1,199 @@
+package mysql;
+
+import common.SvcActivity;
+import database.SQLUtility;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.logging.Level;
+import utilities.WebErrorLogger;
+
+
+public class SvcActivityManager implements database.SvcActivityManager {
+
+    @Override
+    public SvcActivity getSvcActivity(int svcActivityID) {
+        String sql = "SELECT * FROM svcActivity WHERE svcActivityID = ? ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        SvcActivity svc;
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, svcActivityID);
+
+            rs = stmt2.executeQuery();
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closePreparedStatement(stmt2);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            svc = SQLUtility.convertResultSetToSvcActivity(rs);
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getSvcActivity(int svcActivityID) "
+                    + "svcActivityID="+svcActivityID + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return svc;
+    }
+
+    @Override
+    public Collection<SvcActivity> getSvcActivitysByApplication(int application) {
+        String sql = "SELECT * FROM degree WHERE application = ? ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        LinkedList<SvcActivity> svcs = new LinkedList<>();
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, application);
+
+            rs = stmt2.executeQuery();
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closePreparedStatement(stmt2);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            do {
+                SvcActivity svc = SQLUtility.convertResultSetToSvcActivity(rs);
+                svcs.add(svc);
+            } while(rs.next());
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getSvcActivitysByApplication(int application) "
+                    + "application="+application + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return svcs;
+    }
+
+    @Override
+    public boolean insertSvcActivity(SvcActivity svcActivity) {
+        String sql = "INSERT INTO `Tenure`.`svcactivity` "
+                + "(`application`, `type`, `supportDocument`) "
+                + "VALUES (?, ?, ?);";
+        boolean returnValue;
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, svcActivity.getApplication());
+            stmt2.setString(2, svcActivity.getType());
+            stmt2.setInt(3, svcActivity.getSupportDocument());
+            
+            returnValue = stmt2.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in insertSvcActivity(SvcActivity svcActivity) " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return false;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        return returnValue;
+    }
+
+    @Override
+    public SvcActivity updateSvcActivity(SvcActivity svcActivity) {
+        String sql = "UPDATE svcactivity SET "
+                + "application=? type=? supportDocument=? "
+                + "WHERE svcActivityID=?;";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, svcActivity.getApplication());
+            stmt2.setString(2, svcActivity.getType());
+            stmt2.setInt(3, svcActivity.getSupportDocument());
+            
+            stmt2.executeUpdate();
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in updateSvcActivity(SvcActivity svcActivity) " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        return getSvcActivity(svcActivity.getSvcActivityID());
+    }
+
+    @Override
+    public boolean deleteSvcActivity(int svcActivityID) {
+        String sql = "DELETE FROM svcActivity WHERE svcActivityID = ? ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        boolean returnValue;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, svcActivityID);
+
+            returnValue = stmt2.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in deleteSvcActivity(int svcActivityID) "
+                    + "svcActivityID="+svcActivityID + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return false;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return returnValue;
+    }
+
+    @Override
+    public Collection<SvcActivity> getAllSvcActivitys() {
+        String sql = "SELECT * FROM svcactivity ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        LinkedList<SvcActivity> svcs = new LinkedList<>();
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+
+            rs = stmt.executeQuery(sql);
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closeStatement(stmt);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            do {
+                SvcActivity svc = SQLUtility.convertResultSetToSvcActivity(rs);
+                svcs.add(svc);
+            } while(rs.next());
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getAllSvcActivitys() "
+                    + " error: " + ex);
+            Web_MYSQL_Helper.closeStatement(stmt);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closeStatement(stmt);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return svcs;
+    }
+}

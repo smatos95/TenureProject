@@ -1,0 +1,291 @@
+<%-- 
+    Document   : educationalCred
+    Created on : Feb 24, 2019, 8:35:54 PM
+               : Shane Panagakos (2019)
+    Author     : Steven Matos (2019)
+--%>
+
+<%@page import="java.util.List"%>
+<%@page import="java.time.LocalDateTime"%>
+<%@page import="java.util.Iterator"%>
+<%@page import="common.Degree"%>
+<%@page import="common.Application"%>
+<%@page import="common.BuUser"%>
+<%@page import="mysql.DegreeManager"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Educational Credentials</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+        <script src="scripts/popUpModal.js"></script>
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    </head>
+    <body bgcolor="#F4ECD9">
+        <%  HttpSession sess = request.getSession(false);
+            final Object lock = sess.getId().intern();
+            DegreeManager dm = new DegreeManager();
+            Application app;
+            Integer currentcred;
+            int i = 0;
+            synchronized (lock) {
+                app = (Application) sess.getAttribute("currentapp");
+                currentcred = (Integer) sess.getAttribute("currentcred");
+            }
+
+            List<Degree> degs = null;
+            boolean degsExist = false;
+            Degree d = null;
+            if (app != null) {
+                degs = dm.getDegreesByApplication(app.getApplicationID());
+            }
+            degsExist = (degs != null && degs.size() > 0);
+
+            // set default field values
+            String institution = "";
+            String degreeAwarded = "";
+
+            String field = "";
+            String attendFrom = LocalDateTime.now().toString().substring(0, LocalDateTime.now().toString().indexOf("T"));
+            String attendTo = LocalDateTime.now().toString().substring(0, LocalDateTime.now().toString().indexOf("T"));
+            String degreeConf = LocalDateTime.now().toString().substring(0, LocalDateTime.now().toString().indexOf("T"));
+
+            // get the degree that corresponds to currentcred
+            if (degsExist && currentcred != null) {
+                for (Degree deg : degs) {
+                    if (deg.getDegreeID() == currentcred) {
+                        d = deg;
+                        break;
+                    }
+                }
+            } else {
+                synchronized (lock) { // no degrees for application or currentcred not set
+                    sess.setAttribute("currentcred", new Integer(-1));
+                }
+            }
+
+            // populate field values
+            if (d != null) {
+                if (d.getInstitution() != null) {
+                    institution = d.getInstitution();
+                }
+                if (d.getCredential() != null) {
+                    degreeAwarded = d.getCredential();
+                }
+                if (d.getFieldOfStudy() != null) {
+                    field = d.getFieldOfStudy();
+                }
+                if (d.getAttendancePeriods() != null) {
+                    attendFrom = d.getAttendancePeriods().substring(0, d.getAttendancePeriods().indexOf("%"));
+                    attendTo = d.getAttendancePeriods().substring(d.getAttendancePeriods().indexOf("%") + 1);
+                }
+                if (d.getDegreeDate() != null) {
+                    degreeConf = d.getDegreeDate().substring(d.getDegreeDate().indexOf("%") + 1);
+                }
+            }
+        %>
+        <jsp:include page="sideTabs.jsp"/>
+        <script>
+            document.getElementsByName("dropbutton")[0].className = "dropdown-btn active";
+            document.getElementsByName("eduCred")[0].className = "inDropdown active";
+
+            //keeps the dropdown open when element is clicked
+            window.onload = function () {
+                document.getElementById("backgroundInformationDropdown").click();
+            };
+        </script>
+        <div id="bgkInfo" class="tabcontent">
+
+            <div class="paper"> 
+                <div class="paperTop">
+
+
+
+                    <div class="pageTitle">Education Credentials</div>
+                    <center><div>
+                            <div class ="current_apps_subtitle">Current Application:</div> 
+                            <div class ="current_apps_displayBox">
+                                <% if (app == null) {%>
+                                No Application Selected
+                                <%} else {
+                                %>
+                                <%=app.getFriendlyName()%>
+                                <%}%>
+                            </div>
+                        </div></center>
+                    <hr>
+                </div>
+                <div class="paperContents">
+
+                    <form id="degree_table" method="POST">
+                        <%if (degsExist) {%>
+
+                        <table id ="insertTables">
+                            <%
+                                out.print("<caption class = \"tableHeaderTitle\">Submitted Credentials</caption>");
+
+                                // get the iterator for the degrees and print labels
+                                Iterator<Degree> degsItr = degs.iterator();
+                                Degree deg = degsItr.next();
+                                out.print("<tr>");
+                                deg.printSummaryLabels(out);
+                                out.println("</tr>");
+
+                                // print the first line
+                                out.print("<tr>");
+                                deg.printSummaryRow(out);
+                                out.println("<td><button class =\"action_button\" type=\"submit\" formaction=\"UpdateEduCredServlet\" name=\"cred\" value=\"" + deg.getDegreeID() + "\">Edit</button> <button class =\"action_button\" type=\"submit\" id=\"edu_cred_delete_button\" formaction=\"UpdateEduCredServlet\" onClick=\"deleteEduCred()\" value=\"" + deg.getDegreeID() + "\">Delete</button></td>");
+
+                                out.println("</tr>");
+                                // print the rest of the lines
+                                while (degsItr.hasNext()) {
+                                    String idName = Integer.toString(i) + "_edu_cred_delete_button";
+                                    deg = degsItr.next();
+                                    out.print("<tr>");
+                                    deg.printSummaryRow(out);
+                                    out.println("<td><button class =\"action_button\"  type=\"submit\" formaction=\"UpdateEduCredServlet\" name=\"cred\" value=\"" + deg.getDegreeID() + "\">Edit</button> <button class =\"action_button\" type=\"submit\" id=\"" + idName + "\" formaction=\"UpdateEduCredServlet\" onClick=\"whileDeleteEduCred(" + i + ")\" value=\"" + deg.getDegreeID() + "\">Delete</button></td>");
+                                    out.println("</tr>");
+                                    i++;
+                                }
+                                out.println("</table>");%>
+                            <%} else {%>No credentials have been added.<%}%>
+                    </form>
+                    <button onclick="openModal()" class ="action_button"> Add Credentials </button>
+
+
+                    <div id ="myModal" class ="modal">
+                        <div class ="modal-content">
+                            <span class ="close">&times;</span>
+                            <p class="description">
+                                List the following information for the Institution(s) you have received degrees from:
+                            </p>
+                            <form id="update_educred_page_form" action="UpdateEduCredServlet" method="POST">
+                                <div class="fieldLayout">Institution of Attendance for Degree
+                                    <input type="text" name ="Institution" class="generalTextboxStyle" value="<%=institution%>" placeholder="Ex: University of Bloomsburg">                        
+                                </div>
+                                <div class="fieldLayout">Degree Awarded
+                                    <select name="degree" class="generalTextboxStyle">
+                                        <option <%if (degreeAwarded.equals("N/A")) {%> selected="selected"<%}%>>N/A</option>
+                                        <option <%if (degreeAwarded.equals("Associates")) {%> selected="selected"<%}%>>Associates</option>
+                                        <option <%if (degreeAwarded.equals("Bachelors")) {%> selected="selected"<%}%>>Bachelors</option>
+                                        <option <%if (degreeAwarded.equals("Masters")) {%> selected="selected"<%}%>>Masters</option>
+                                        <option <%if (degreeAwarded.equals("Doctoral")) {%> selected="selected"<%}%>>Doctoral</option>
+                                    </select>
+                                </div>
+
+                                <div class="fieldLayout">Field of Study
+                                    <input type="text" name="field" class="generalTextboxStyle" value="<%=field%>" placeholder="Ex: Computer Science">
+                                </div>
+                                <div class="fieldLayout">Attended From
+                                    <input type="date" name="degreeFrom" class="generalTextboxStyle" value="<%=attendFrom%>">
+                                </div>
+                                <div class="fieldLayout">Attended To
+                                    <input type="date" name="degreeTo" class="generalTextboxStyle" value="<%=attendTo%>">
+                                </div>
+                                <div class="fieldLayout">Date of Degree Conferral
+                                    <input type="date" name="degreeConferralDate" class="generalTextboxStyle" value="<%=degreeConf%>">
+                                </div>
+                                <input type="submit" name="insert" class="action_button" value="Save Credential"/>
+                                <!--save button-->
+                                <input type="submit" class ="action_button" onclick="clickSave()" value="Update Existing"/>
+
+                            </form>
+
+                        </div>
+                    </div>
+                    <form id="update_educred_page_form" action="UpdateEduCredServlet" method="POST">
+                        <div class="footerButtons">
+                            <input type="submit" hidden="hidden" id="save_hidden_button">
+                            <hr>
+                            <input type="submit" name="teachFac" value="Continue"/>
+                            <input type="submit" formaction="PrintEducationalCredServlet" value="Export"/>
+                            <input type="submit" name="first" value="Back"/>
+
+                    </form>
+
+                    <form id='redirct_page' action='RedirectServlet' method='POST'>
+                        <!--skip button-->                    
+                        <input type="submit" name="teachFac" value="Skip"/>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }
+        </script>
+        <script>
+            // This function allows the visible button 'saved' to be clicked through a hidden button
+            function clickSave()
+            {
+                document.getElementById("save_hidden_button").click();
+            }
+        </script>
+
+        <script>
+            function deleteEduCred()
+            {
+                var deleteButton = confirm("Are you sure you want to delete this credential?");
+                var deleteName = document.getElementById("edu_cred_delete_button");
+                if (deleteButton == true)
+                {
+                    deleteName.name = "deleteCred";
+                } else
+                {
+                    deleteName.name = "cancel";
+                }
+            }
+            function whileDeleteEduCred(i)
+            {
+                var deleteButton = confirm("Are you sure you want to delete this credential?");
+                var idName = i + "_edu_cred_delete_button";
+                var deleteName2 = document.getElementById(idName);
+                if (deleteButton == true)
+                {
+                    deleteName2.name = "deleteCred";
+                } else
+                {
+                    deleteName2.name = "cancel";
+                }
+            }
+        </script>
+        <script>
+            // Get the modal
+            var modal = document.getElementById('myModal');
+            // Get the <span> element that closes the modal
+            var span = document.getElementsByClassName("close")[0];
+            function openModal()
+            {
+                // Declare var thats going to be used to open modal
+                var open;
+                // When the user clicks the button, open the modal 
+                open.onclick = modal.style.display = "block";
+            }
+            // When the user clicks on <span> (x), close the modal
+            span.onclick = function () {
+                modal.style.display = "none";
+            }
+            // When the user clicks anywhere outside of the modal, close it
+            window.onclick = function (event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+        </script>
+    </body>
+</html>

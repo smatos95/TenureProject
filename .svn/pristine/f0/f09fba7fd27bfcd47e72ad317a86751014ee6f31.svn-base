@@ -1,0 +1,83 @@
+<%-- 
+    Document   : deptNarrativeSigPage
+    Created on : Mar 17, 2019, 7:53:40 PM
+    Author     : Jake Gordon (2019)
+--%>
+
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="common.BuUser"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Tenure Prep Form</title>
+        <link rel ="icon" href="../images/husky.png">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script type="text/javascript">          
+            
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+    </head>
+   
+    <body bgcolor="#F4ECD9">
+         <% HttpSession session1 = request.getSession(true);
+                    common.BuUser use = (common.BuUser) session1.getAttribute("user");
+                    %>
+        <jsp:include page="sideTabs.jsp"/>
+        <script>
+            document.getElementsByName("dropbutton")[4].className = "dropdown-btn active";
+            document.getElementsByName("deptNarrativeSigPage")[0].className = "inDropdown active";
+        </script>
+        <div id="deptNarrativeSigPage" class="tabcontent">
+            <div class="paper">
+                <h1>Department Committee Narrative and Signature Page</h1>
+                <div>Content:</div>
+                <p>
+                    The narrative should not be merely a repetition of the application, but should<br/>
+                    explain the significance of the applicant’s contributions from his/her<br/>
+                    colleagues’ point of view.  The committee members’ narrative should justify<br/>
+                    the positive or negative recommendation.<br/>
+                </p>
+                <div>Length:</div>
+                <p>
+                    We recommend not exceeding 3 pages, single-spaced
+                </p>
+                <div>Signature Page:</div>
+                <p>
+                    	At the end of the narrative, or on a separate page, committee members should<br/>
+                        sign the statement.  A format for the statement is attached to this instruction<br/>
+                        packet.	Duplicate or retype it as needed, and fill in the blanks.<br/>
+
+                </p>
+                
+                <!--<div>
+                    <textarea class="narrative" cols="500" rows="26" maxlength="3000">
+                       
+                    </textarea>
+                </div>-->
+                
+            </div>
+        </div> 
+        <!-- Dropdown menu script -->
+        <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+                    
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }           
+        </script>
+    </body>
+</html>
+

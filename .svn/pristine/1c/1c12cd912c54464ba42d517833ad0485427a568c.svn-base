@@ -1,0 +1,254 @@
+package mysql;
+
+import common.Grades;
+import database.SQLUtility;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.logging.Level;
+import utilities.WebErrorLogger;
+
+/**
+ * Represents a manager for the <code>Grades</code> object, which 
+ * implements the <code>GradesManager</code> interface.
+ * 
+ * @author Gryphon Ayers (2019)
+ */
+public class GradesManager implements database.GradesManager {
+
+    /**
+     * Returns the <code>Grades</code> object corresponding to the 
+     * provided primary key in the user's database.
+     * 
+     * @param gradesID  The primary key of the grade record to fetch from
+     * the user's database.
+     * @return An <code>Grades</code> object which corresponds to the 
+     * grade record with the provided primary key in the user's database.
+     */
+    @Override
+    public Grades getGrades(int gradesID) {
+        String sql = "SELECT * from grades where gradesID = ?;";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        Grades grade;
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, gradesID);
+
+            rs = stmt2.executeQuery();
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closePreparedStatement(stmt2);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            grade = SQLUtility.convertResultSetToGrades(rs);
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getGrades(int gradesID) "
+                    + "gradesID="+gradesID + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        return grade;
+    }
+
+    /**
+     * Returns the <code>Grades</code> objects associated with the provided
+     * user ID in the user's database.
+     * 
+     * @param userID The user ID associated with the grade records to fetch from
+     * the user's database.
+     * @return A List of <code>Grades</code> objects corresponding to 
+     * the grade records associated with the provided user ID in the user's 
+     * database.
+     */
+    @Override
+    public List<Grades> getGradesByUserID(int userID) {
+        String sql = "SELECT * from grades where instructor = ?;";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        LinkedList<Grades> grades = new LinkedList<>();
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, userID);
+
+            rs = stmt2.executeQuery();
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closePreparedStatement(stmt2);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            do {
+                Grades g = SQLUtility.convertResultSetToGrades(rs);
+                grades.add(g);
+            } while(rs.next());
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getGradesByUserID(int userID) "
+                    + "user="+userID + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        return grades;
+    }
+
+    /**
+     * Attempts to insert the contents of an <code>Grades</code> object
+     * into the user's database.
+     *
+     * @param grades An <code>Grades</code> object which will be used 
+     * to add to the user's database.
+     * @return true if the <code>Grades</code> was inserted successfully, 
+     * false otherwise.
+     */
+    @Override
+    public Integer insertGrades(Grades grades) {
+        String sql = "INSERT INTO `Tenure`.`grades` "
+                + "(`semester`, `year`, `course`, "
+                + "`section`, `instructor`, `gradeA`, `gradeAminus`, "
+                + "`gradeBplus`, `gradeB`, `gradeBminus`, `gradeCplus`, "
+                + "`gradeC`, `gradeCminus`, `gradeDplus`, `gradeD`, "
+                + "`gradeF`, `gradeR`, `gradeW`) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        Integer returnValue = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setString(1, grades.getSemester());
+            stmt2.setShort(2, grades.getYear());
+            stmt2.setInt(3, grades.getCourse());
+            stmt2.setString(4, grades.getSection());
+            stmt2.setInt(5, grades.getInstructor());
+            
+            int[] gradeData = grades.getGradeData();
+            for(int i = 0; i < Grades.GRADE_DATA_COLUMN_COUNT; i++) {
+                stmt2.setInt(Grades.GRADE_DATA_COLUMN_OFFSET+i, gradeData[i]);
+            }
+            
+            if (stmt2.executeUpdate() > 0) {
+                ResultSet rs = stmt2.getGeneratedKeys();
+                if(rs.next()) {
+                    returnValue = rs.getInt(1);
+                }
+            }
+            
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in insertGrades(Grades grades) " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        
+        return returnValue;
+    }
+
+    /**
+     * Returns a <code>Grades</code> object corresponding to the updated 
+     * state of the grade record present in the user's database.
+     *
+     * @param grades An <code>Grades</code> object containing the
+     * information to be used for the update.
+     * @return An <code>Grades</code> object corresponding to the updated
+     * state of the grade record stored in the user's database.
+     */
+    @Override
+    public boolean updateGrades(Grades grades) {
+        String sql = "UPDATE grades SET "
+                + "semester=? year=? course=? section=? instructor=? "
+                + "gradeA=? gradeAminus=? gradeBplus=? gradeB=? gradeBminus=? "
+                + "gradeCplus=? gradeC=? gradeCminus=? gradeDplus=? gradeD=? "
+                + "gradeF=? gradeR=? gradeW=? WHERE gradesID = ?;";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        boolean returnValue;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setString(2, grades.getSemester());
+            stmt2.setShort(3, grades.getYear());
+            stmt2.setInt(4, grades.getCourse());
+            stmt2.setString(5, grades.getSection());
+            stmt2.setInt(6, grades.getInstructor());
+            
+            int[] gradeData = grades.getGradeData();
+            for(int i = 0; i < Grades.GRADE_DATA_COLUMN_COUNT; i++) {
+                stmt2.setInt(Grades.GRADE_DATA_COLUMN_OFFSET+i, gradeData[i]);
+            }
+            returnValue = stmt2.executeUpdate() > 0;
+            
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in updateGrades(Grades grades) " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return false;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        
+        return returnValue;
+    }
+
+    /**
+     * Returns a List of all grade records present in the database.
+     * @return A List of all grade records present if any applications are
+     * present, or <code>null</code> if no grade records are present or an error
+     * condition has occurred.
+     */
+    @Override
+    public List<Grades> getAllGrades() {
+        String sql = "SELECT * from grades;";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        LinkedList<Grades> grades = new LinkedList<>();
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+
+            rs = stmt.executeQuery(sql);
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closeStatement(stmt);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            do {
+                Grades g = SQLUtility.convertResultSetToGrades(rs);
+                grades.add(g);
+            } while(rs.next());
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getAllGrades() "
+                    + " error: " + ex);
+            Web_MYSQL_Helper.closeStatement(stmt);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closeStatement(stmt);
+        Web_MYSQL_Helper.returnConnection(conn);
+        return grades;
+    }
+    
+}

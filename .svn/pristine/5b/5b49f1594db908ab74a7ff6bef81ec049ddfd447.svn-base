@@ -1,0 +1,212 @@
+package mysql;
+
+import common.LocalExp;
+import database.SQLUtility;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.logging.Level;
+import utilities.WebErrorLogger;
+
+
+public class LocalExpManager implements database.LocalExpManager {
+
+    @Override
+    public LocalExp getLocalExp(int localExpID) {
+        String sql = "SELECT * FROM localexp WHERE localExpID = ? ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        LocalExp loc;
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, localExpID);
+
+            rs = stmt2.executeQuery();
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closePreparedStatement(stmt2);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            loc = SQLUtility.convertResultSetToLocalExp(rs);
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getLocalExp(int localExpID) "
+                    + "localExpID="+localExpID + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return loc;
+    }
+
+    @Override
+    public Collection<LocalExp> getLocalExpsByApplication(int application) {
+        String sql = "SELECT * FROM localexp WHERE application = ? ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        LinkedList<LocalExp> locs = new LinkedList<>();
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, application);
+
+            rs = stmt2.executeQuery();
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closePreparedStatement(stmt2);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            while(rs.next()) {
+                LocalExp loc = SQLUtility.convertResultSetToLocalExp(rs);
+                locs.add(loc);
+            }
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getLocalExpsByApplication(int application) "
+                    + "application="+application + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return locs;
+    }
+
+    @Override
+    public boolean insertLocalExp(LocalExp localExp) {
+        String sql = "INSERT INTO `Tenure`.`localexp` "
+                + "(`application`, `courseName`, "
+                + "`lastSemesterTaught`, `miscInfo`) "
+                + "VALUES (?, ?, ?, ?);";
+        boolean returnValue;
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, localExp.getApplication());
+            stmt2.setString(2, localExp.getCourseName());
+            stmt2.setString(3, localExp.getLastSemesterTaught());
+            stmt2.setString(4, localExp.getMiscInfo());
+            
+            returnValue = stmt2.executeUpdate() > 0;
+            
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in insertLocalExp(LocalExp localExp " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return false;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        return returnValue;
+    }
+
+    @Override
+    public LocalExp updateLocalExp(LocalExp localExp) {
+        String sql = "UPDATE localExp SET application=? "
+                + "courseName=? lastSemesterTaught=? "
+                + "miscInfo=?"
+                + "WHERE localExpID=?;";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, localExp.getApplication());
+            stmt2.setString(2, localExp.getCourseName());
+            stmt2.setString(3, localExp.getLastSemesterTaught());
+            stmt2.setString(4, localExp.getMiscInfo());
+            stmt2.setInt(5, localExp.getLocalExpID());
+            
+            stmt2.executeUpdate();
+            
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in updateLocalExp(LocalExp localExp) " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        
+        return getLocalExp(localExp.getLocalExpID());
+    }
+
+    @Override
+    public boolean deleteLocalExp(int localExpID) {
+        String sql = "DELETE FROM localExp WHERE localExpID = ?;";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        boolean returnValue;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, localExpID);
+            
+            returnValue = stmt2.executeUpdate() > 0;
+            
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in deleteLocalExp(LocalExp localExp) " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return false;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        
+        return returnValue;
+    }
+
+    @Override
+    public Collection<LocalExp> getAllLocalExps() {
+        String sql = "SELECT * FROM localExp ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        LinkedList<LocalExp> locs = new LinkedList<>();
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+
+            rs = stmt.executeQuery(sql);
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closeStatement(stmt);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            while(rs.next()) {
+                LocalExp loc = SQLUtility.convertResultSetToLocalExp(rs);
+                locs.add(loc);
+            }
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getAllLocalExps() "
+                    + " error: " + ex);
+            Web_MYSQL_Helper.closeStatement(stmt);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closeStatement(stmt);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return locs;
+    }
+}

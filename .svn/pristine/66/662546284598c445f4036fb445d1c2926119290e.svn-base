@@ -1,0 +1,89 @@
+package common;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import javax.servlet.jsp.JspWriter;
+
+/** 
+ * Represents a record of experience earned teaching courses at Bloomsburg 
+ * University.
+ *
+ * @author Gryphon Ayers (2019)
+ */
+public class LocalExp implements Tableable {
+    private final int localExpID; // primary key
+    private int application; // foreign key - refers to applicationID
+    private String courseName;
+    private String lastSemesterTaught;
+    private String miscInfo;
+
+    public LocalExp(int localExpID) {
+        this.localExpID = localExpID;
+    }
+
+    public int getLocalExpID() {
+        return localExpID;
+    }
+
+    public int getApplication() {
+        return application;
+    }
+
+    public void setApplication(int application) {
+        this.application = application;
+    }
+
+    public String getCourseName() {
+        return courseName;
+    }
+
+    public void setCourseName(String courseName) {
+        this.courseName = courseName;
+    }
+
+    public String getLastSemesterTaught() {
+        return lastSemesterTaught;
+    }
+
+    public void setLastSemesterTaught(String lastSemesterTaught) {
+        this.lastSemesterTaught = lastSemesterTaught;
+    }
+
+    public String getMiscInfo() {
+        return miscInfo;
+    }
+
+    public void setMiscInfo(String miscInfo) {
+        this.miscInfo = miscInfo;
+    }
+
+    @Override
+    public void printSummaryLabels(JspWriter out) throws IOException {
+        out.println("<td>"+"Course"+"</td>");
+        out.println("<td>"+"Last Taught"+"</td>");
+    }
+
+    @Override
+    public void printCompleteLabels(JspWriter out) throws IOException {
+        out.println("<td>"+"ID"+"</td>");
+        out.println("<td>"+"AppID"+"</td>");
+        out.println("<td>"+"Course"+"</td>");
+        out.println("<td>"+"Last Taught"+"</td>");
+        out.println("<td>"+"Info"+"</td>");
+    }
+
+    @Override
+    public void printSummaryRow(JspWriter out) throws IOException {
+        out.println("<td>"+courseName+"</td>");
+        out.println("<td>"+lastSemesterTaught+"</td>");
+    }
+
+    @Override
+    public void printCompleteRow(JspWriter out) throws IOException {
+        out.println("<td>"+localExpID+"</td>");
+        out.println("<td>"+application+"</td>");
+        out.println("<td>"+courseName+"</td>");
+        out.println("<td>"+lastSemesterTaught+"</td>");
+        out.println("<td>"+"<abbr title=\""+miscInfo+"\">...</abbr>"+"</td>");
+    }
+}

@@ -1,0 +1,172 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package servlets;
+
+import common.Application;
+import common.WorkExp;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import mysql.WorkExpManager;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+
+/**
+ *
+ * @author Jake Gordon (2019)
+ */
+@WebServlet(name = "PrintOtherWorkExperienceServlet", urlPatterns =
+{
+    "/PrintOtherWorkExperienceServlet"
+})
+public class PrintOtherWorkExperienceServlet extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException 
+    {
+        WorkExpManager workManager = new WorkExpManager();
+        Application application = (Application) request.getSession().getAttribute("currentapp");
+        WorkExp workExp = workManager.getWorkExp(application.getApplicantUser());
+        
+        XWPFDocument document = new XWPFDocument();
+        
+        XWPFParagraph institution = document.createParagraph();
+        institution.setSpacingAfter(-1);
+        institution.setSpacingBetween(1.5);
+        institution.setPageBreak(true);
+        XWPFRun bolded1 = institution.createRun();
+        bolded1.setBold(true);
+        bolded1.setText("Institution:");
+        bolded1.addTab();
+        bolded1.addTab();
+        XWPFRun info1 = institution.createRun();
+        info1.setText(workExp.getInstitution());
+        
+        XWPFParagraph title = document.createParagraph();
+        title.setSpacingAfter(-1);
+        title.setSpacingBefore(-1);
+        title.setSpacingBetween(1.5);
+        XWPFRun bolded2 = title.createRun();
+        bolded2.setBold(true);
+        bolded2.setText("Title:");
+        bolded2.addTab();
+        bolded2.addTab();
+        bolded2.addTab();
+        XWPFRun info2 = title.createRun();
+        info2.setText(workExp.getTitle());
+        
+        XWPFParagraph datesOfExp = document.createParagraph();
+        datesOfExp.setSpacingAfter(-1);
+        datesOfExp.setSpacingBefore(-1);
+        datesOfExp.setSpacingBetween(1.5);
+        XWPFRun bolded3 = datesOfExp.createRun();
+        bolded3.setBold(true);
+        bolded3.setText("Dates of Experience:");
+        bolded3.addTab();
+        XWPFRun info3 = datesOfExp.createRun();
+        info3.setText(workExp.getExperienceDates());
+        
+        XWPFParagraph years = document.createParagraph();
+        years.setSpacingAfter(-1);
+        years.setSpacingBefore(-1);
+        years.setSpacingBetween(1.5);
+        XWPFRun bolded4 = years.createRun();
+        bolded4.setBold(true);
+        bolded4.setText("Years:");
+        bolded4.addTab();
+        bolded4.addTab();
+        bolded4.addTab();
+        XWPFRun info4 = years.createRun();
+        info4.setText("Gryphon put the years in");
+        
+        XWPFParagraph status = document.createParagraph();
+        status.setSpacingAfter(-1);
+        status.setSpacingBefore(-1);
+        status.setSpacingBetween(1.5);
+        XWPFRun bolded5 = status.createRun();
+        bolded5.setBold(true);
+        bolded5.setText("Full/Part Time Status:");
+        bolded5.addTab();
+   
+        XWPFRun info5 = status.createRun();
+        if(workExp.isFullTime() == true)
+            info5.setText("Full-time");
+        else
+            info5.setText("Part-time");       
+                        
+        // Set Download info
+        String relativePath = getServletContext().getRealPath("");
+        ServletContext context = getServletContext();
+        String mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        response.setContentType(mimeType);
+        String headerKey = "Content-Disposition";
+        String headerValue = String.format("attachment; filename=\"%s\"", "OtherWorkExperience.docx");
+        response.setHeader(headerKey, headerValue);
+        
+        // Send the download!
+        OutputStream outStream = response.getOutputStream();
+        document.write(outStream);
+        
+        // Finish out.
+        outStream.close();
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+}

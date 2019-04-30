@@ -1,0 +1,375 @@
+<%-- 
+    Document   : teachingFaculty
+    Created on : Feb 24, 2019, 2:05:23 PM
+               : Shane Panagakos (2019)
+    Author     : Jake Gordon (2019)
+--%>
+
+<%@page import="java.util.Iterator"%>
+<%@page import="java.util.List"%>
+<%@page import="common.BuUser"%>
+<%@page import="java.time.LocalDateTime"%>
+<%@page import="common.TeachingExp"%>
+<%@page import="java.util.Collection"%>
+<%@page import="mysql.TeachingExpManager"%>
+<%@page import="common.Application"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Teaching and Faculty</title>
+        <link rel ="icon" href="../images/husky.png">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+        <script src="scripts/wordCounterScript.js"></script>
+    </head>
+    <body bgcolor="#F4ECD9">
+        <% 
+            /**
+             * This java code sets up all the objects used for a user's teaching experiences. 
+             * It returns the current <code>HttpSession</code> if it exists and will not create a new one.
+             * It creates an <code>Object</code> unique to the current session ID.
+             * It creates a <code>TeachingExpManager</code> to manage all the teaching experiences the user has currently made.
+             * It creates an <code>Application</code> and synchronizes it to the current application of the user
+             * It creates an <code>Integer</code> object and synchronizes it to the current teaching experience being worked upon.
+             * It creates an <code>int</code> used to uniquely id each delete button later in the program.
+             * 
+             * @param sess The current session. Set to false because the user should only be able to get to this page if it currently exists and cannot create a new one.
+             * @param lock An object unique to the session's ID used to synchronize the current application and current teaching experience.
+             * @param tem The TeachingExpManager for the user's teaching experience pool.
+             * @param app The user's current application being worked on.
+             * @param currentexp An Integer object used to set the current teaching experience the user is working on.
+             * @param i An int used to uniquely name the id's of the delete buttons for each experience.
+             */
+            
+            HttpSession sess = request.getSession(false);
+            final Object lock = sess.getId().intern();
+            TeachingExpManager tem = new TeachingExpManager();
+            Application app;
+            Integer currentexp;
+            BuUser user;
+            int i = 0;
+            synchronized (lock) {
+                app = (Application) sess.getAttribute("currentapp");
+                currentexp = (Integer) sess.getAttribute("currentexp");
+                user = (BuUser) sess.getAttribute("user");
+            }
+            
+            /**
+             * This java code sets up to contain multiple teaching experiences for the user's application. It then
+             * checks to see if the user has an application and then gets all the teaching experiences in that application. From there it sets
+             * if there are any teaching experiences based upon if the teaching experiences exist and the size of the teaching experiences is greater than 0.
+             * It creates a <code>List</code> of <code>TeachingExp</code> objects and for the user to fill.
+             * It creates a <code>boolean</code> to check if the user currently has any teaching experiences tied to the application.
+             * It creates a <code>TeachingExp</code> object for the current teaching experience to be added.
+             *  
+             * @param tec The list of degrees that the user has tied to their application.
+             * @param tecsExist A boolean to check and see if the user has teaching experiences tied to their current application.
+             * @param e A teaching experience object used to populate the table with all user's current teaching experiences.
+             */
+            
+            List<TeachingExp> tec = null;
+            boolean tecExist = false;
+            TeachingExp e = null;
+            if (app != null) {
+                tec = tem.getTeachingExpsByApplication(app.getApplicationID());
+            }
+            tecExist = (tec != null && tec.size() > 0);
+
+            /**
+             * This java code sets all the default values for all the fields used to create a teaching experience.
+             * @param institution A String object that represents the institution where the user taught at.
+             * @param rank A String object that represents the rank the user was during their teaching experience.
+             * @param teachFrom A String object that represents the date the user started their teaching experience.
+             * @param teachTo A String object that represents the date the user ended their teaching experience.
+             * @param yearsTaught An int that represents how long the user's teaching experience lasted.
+             * @param status A String object that represents whether the user was full-time or part-time for their teaching experience.
+             */
+            String institution = "";
+            String rank = "Select Your Rank";
+            String teachFrom = LocalDateTime.now().toString().substring(0, LocalDateTime.now().toString().indexOf("T"));
+            String teachTo = LocalDateTime.now().toString().substring(0, LocalDateTime.now().toString().indexOf("T"));
+            int yearsTaught = 0;
+            String status = "Full-time";
+
+            /**
+             * This java code gets the teaching experience that correpsonds to the current experience. It checks to see if the teaching experience exists
+             * and that the current credential is not null. Then it checks through every teaching experience in the list of experiences and assigns it
+             * as soon as it finds the degree with the same id as the current teaching experience.
+             */
+            
+            if (tecExist && currentexp != null) {
+                for (TeachingExp exp : tec) {
+                    if (exp.getTeachingID() == currentexp) {
+                        e = exp;
+                        break;
+                    }
+                }
+            } else {
+                synchronized (lock) { // no degrees for application or currentcred not set
+                    sess.setAttribute("currentexp", new Integer(-1));
+                }
+            }
+
+            /**
+             * This java code checks to see that the teaching experience is not null. It then begins to check every field and fills them based off
+             * of the data in the corresponding database entry in the teaching experience table.
+             */
+            if (e != null) {
+                if (e.getInstitution() != null) {
+                    institution = e.getInstitution();
+                }
+                if (e.getRank() != null) {
+                    rank = e.getRank();
+                }
+                if (e.getTeachingDates() != null) {
+                    teachFrom = e.getTeachingDates().substring(0, e.getTeachingDates().indexOf("%"));
+                    teachTo = e.getTeachingDates().substring(e.getTeachingDates().indexOf("%") + 1);
+                }
+                if (e.getYearsOfService() != null) {
+                    yearsTaught = Integer.parseInt(e.getYearsOfService());
+                }
+                if (e.isFullTime() == false) {
+                    status = "Part-time";
+                }
+            }
+        %>
+        <jsp:include page="sideTabs.jsp"/>
+        <script>
+            document.getElementsByName("dropbutton")[0].className = "dropdown-btn active";
+            document.getElementsByName("teachFac")[0].className = "inDropdown active";
+
+            //keeps the dropdown open when element is clicked
+            window.onload = function () {
+                document.getElementById("backgroundInformationDropdown").click();
+            };
+        </script>
+        <div id="teaching" class="tabcontent">
+            <div class="paper">
+                <div class="paperTop">
+
+                    <!--save button-->
+                    <input type="submit" onclick="clickSave()" value="Save"/>
+
+                    <div class="pageTitle">Teaching & Faculty Background</div>
+
+                    <center><div>
+                            <div class ="current_apps_subtitle">Current Application:</div> 
+                            <div class ="current_apps_displayBox">
+                                <% if (app == null) {%>
+                                No Application Selected
+                                <%} else {
+                                %>
+                                <%=app.getFriendlyName()%>
+                                <%}%>
+                            </div>
+                        </div></center>
+                    <hr>
+                </div>
+                <div class="paperContents">
+                    <form id="degree_table" method="POST">
+                        <%if (tecExist) {%>
+                        <table id ="insertTables">
+                            <%
+                                
+                                /**
+                                 * The following java code is used to create an html table that represents all the teaching experiences the user currently has tied to their application.
+                                 * From here the user can edit or delete an experience.
+                                 */
+                                out.print("<caption class = \"tableHeaderTitle\">Submitted Records</caption>");
+                                // get the iterator for the degrees and print labels
+                                Iterator<TeachingExp> tecItr = tec.iterator();
+                                TeachingExp tex = tecItr.next();
+                                out.print("<tr>");
+                                tex.printSummaryLabels(out);
+                                out.println("</tr>");
+
+                                /**
+                                 * This java code creates the content of the first experience, along with an edit and delte button for it
+                                 */
+                                out.print("<tr>");
+                                tex.printSummaryRow(out);
+                                out.println("<td><button class =\"action_button\" type=\"submit\" formaction=\"TeachFacAutofillServlet\" name=\"exp\" value=\"" + tex.getTeachingID() + "\">Edit</button> <button class =\"action_button\" type=\"submit\" id=\"teach_fac_delete_button\" formaction=\"UpdateTeachingFacultyServlet\" onClick=\"deleteTeachFac()\" value=\"" + tex.getTeachingID() + "\">Delete</button></td>");
+
+                                out.println("</tr>");
+                                
+                                /**
+                                 * This while loop iterates through all the degrees created and prints them into the table.
+                                 * 
+                                 * @param idName A String that uses the <code>int</code> i to uniquely name the delete buttons, otherwise the method for deletion will only be called for the first table entry
+                                 * with calling id.
+                                 */
+                                
+                                while (tecItr.hasNext()) {
+                                    String idName = Integer.toString(i) + "_teach_fac_delete_button";
+                                    tex = tecItr.next();
+                                    out.print("<tr>");
+                                    tex.printSummaryRow(out);
+                                    out.println("<td><button class =\"action_button\" type=\"submit\" formaction=\"TeachFacAutofillServlet\" name=\"exp\" value=\"" + tex.getTeachingID() + "\">Edit</button> <button  class =\"action_button\" type=\"submit\" id=\"" + idName + "\" formaction=\"UpdateTeachingFacultyServlet\" onClick=\"whileDeleteTeachFac(" + i + ")\" value=\"" + tex.getTeachingID() + "\">Delete</button></td>");
+                                    out.println("</tr>");
+                                    i++;
+                                }
+                                out.println("</table>");%>
+                            <%} else {%>No records have been added.<%}%>
+                    </form>
+                    <button onclick="openModal()" class ="action_button"> Add Credentials </button>
+
+                    <div id ="myModal" class ="modal">
+                        <div class ="modal-content">
+                            <span class ="close">&times;</span>
+                            <p class="description">List the following information for the Institution(s) you have taught at:</p>
+
+                            <form id="update_teaching_faculty_form" action="UpdateTeachingFacultyServlet" method="POST">
+                                <div class="fieldLayout">Institution taught at <span style="margin-left: 32%" id="institutionTaughtAtCurrent"><%=institution.length()%></span><span>/35</span>
+                                    <input id="institutionTaughtAt" maxLength="35" oninput="updateCharCount('institutionTaughtAtCurrent', 'institutionTaughtAt')" type="text" name="teachingInstitution" class="generalTextboxStyle" value="<%=institution%>" placeholder="Ex: University of Bloomsburg">
+                                </div>
+                                <div class="fieldLayout">Rank
+                                    <select name="teachingRank" class="generalTextboxStyle">
+                                        <option value="Select a Rank" <%if (rank.equals("Select a Rank")) {%> selected="selected"<%}%>>Select a Rank</option>
+                                        <option value="Instructor" <%if (rank.equals("Instructor")) {%> selected="selected"<%}%>>Instructor</option>
+                                        <option value="Assistant Professor" <%if (rank.equals("Assistant Professor")) {%> selected="selected"<%}%>>Assistant Professor</option>
+                                        <option value="Associate Professor" <%if (rank.equals("Associate Professor")) {%> selected="selected"<%}%>>Associate Professor</option>
+                                    </select>
+                                </div>
+                                <div class="fieldLayout">From 
+                                    <input type="date" name="teachingFrom" class="generalTextboxStyle" value="<%=teachFrom%>">
+                                </div>
+                                <div class="fieldLayout">To
+                                    <input type="date" name="teachingTo" class="generalTextboxStyle"value="<%=teachTo%>">
+                                </div>
+                                <div class="fieldLayout">Total Number of Years
+                                    <input type="number" name="teachingYears" min="0" max="70" class="generalTextboxStyle"value="<%=yearsTaught%>">
+                                </div>
+                                <div class="fieldLayout">Status
+                                    <input type="radio" name="teachingStatus" value="Full-time" <%if (status.equals("Full-time")) {%>checked="checked"<%}%>/>Full-time
+                                    <input type="radio" name="teachingStatus" value="Part-time" <%if (status.equals("Part-time")) {%>checked="checked"<%}%>/>Part-time
+                                </div>
+                                <input type="submit" name="insert" class="action_button" value="Save Credential"/>
+                                <!--save button-->
+                                <input type="submit" class ="action_button" onclick="clickSave()" value="Update Existing"/>
+                            </form>
+                        </div>
+                                </div>
+
+                        <form id="update_teaching_faculty_form" action="UpdateTeachingFacultyServlet" method="POST">
+                        <div class="footerButtons">                       
+                            <input type="submit" hidden="hidden" id="save_hidden_button">
+                            <hr>
+                            <input type="submit" name="workExp" value="Continue"/>
+                            <input type="submit" formaction="PrintTeachingFacultyServlet" name="print" value="Export"/>
+                            <input type="submit" name="eduCred" value="Back"/>
+                            
+                        </form>
+                                
+                            <form id='redirct_page' action='RedirectServlet' method='POST'>
+                                <!--skip button-->            
+                                <input type="submit" name="workExp" value="Skip"/>
+                            </form>
+                        </div>
+                    
+                </div>  
+
+                <script>
+                    /**
+                    * Activates and displays a vertical list of buttons which are set 
+                    * to the side navigation in order to implement the dropdown feature. 
+                    * 
+                    * @param dropdown The button that drops down all the other buttons.
+                    * @param i An interger used to iterate through all the children of the dropdown buttons.
+                    * @param dropdownContent Any child of the dropdown button.
+                    * 
+                    */
+                    var dropdown = document.getElementsByClassName("dropdown-btn");
+                    var i;
+
+                    for (i = 0; i < dropdown.length; i++) {
+                        dropdown[i].addEventListener("click", function () {
+
+                            var dropdownContent = this.nextElementSibling;
+                            if (dropdownContent.style.display === "block") {
+                                dropdownContent.style.display = "none";
+                            } else {
+                                dropdownContent.style.display = "block";
+                            }
+                        });
+                    }
+                </script>
+                <script>
+                    // This function allows the visible button 'saved' to be clicked through a hidden button
+                    function clickSave()
+                    {
+                        document.getElementById("save_hidden_button").click();
+                    }
+                </script>
+                <script>
+                    /**
+                    * This method is initially called by the first delete button created. It gets the id of the button calling it and will rename it to deleteExp or cancel so when 
+                    * it is sent to the servlet it will check to see the name of the button pressed. If it is deleteExp it will delete the experience, if it is cancel it will bypass
+                    * the deletion and leave the table as it is.
+                    * 
+                    * @param deleteButton A boolean value that stores if the user clicked to delete or cancel deletion.
+                    * @param deleteName The button that was clicked to trigger this function.
+                    */
+                    function deleteTeachFac()
+                    {
+                        var deleteButton = confirm("Are you sure you want to delete this teaching experience?");
+                        var deleteName = document.getElementById("teach_fac_delete_button");
+                        if (deleteButton == true)
+                        {
+                            deleteName.name = "deleteExp";
+                        } else
+                        {
+                            deleteName.name = "cancel";
+                        }
+                    }
+                    /**
+                    * This method is called by delete button's in the while loop. If the buttons are not uniquely named then the first button with the id of teach_fac_delete_button will be triggered
+                    * and all other buttons will be ignored. This method is overloaded to accept an integer to uniquely id each button.
+                    * 
+                    * @param deleteButton A boolean value that stores if the user clicked to delete or cancel deletion.
+                    * @param idName A string to hold the unique id of the button that triggers this method.
+                    * @param deleteName2 The button that was clicked to trigger this function.
+                    */
+                    function whileDeleteTeachFac(i)
+                    {
+                        var deleteButton = confirm("Are you sure you want to delete this teaching experience?");
+                        var idName = i + "_teach_fac_delete_button";
+                        var deleteName2 = document.getElementById(idName);
+                        if (deleteButton == true)
+                        {
+                            deleteName2.name = "deleteExp";
+                        } else
+                        {
+                            deleteName2.name = "cancel";
+                        }
+                    }
+                </script>
+                <script>
+                    // Get the modal
+                    var modal = document.getElementById('myModal');
+                    // Get the <span> element that closes the modal
+                    var span = document.getElementsByClassName("close")[0];
+                    function openModal()
+                    {
+                        // Declare var thats going to be used to open modal
+                        var open;
+                        // When the user clicks the button, open the modal 
+                        open.onclick = modal.style.display = "block";
+                    }
+                    // When the user clicks on <span> (x), close the modal
+                    span.onclick = function () {
+                        modal.style.display = "none";
+                    }
+                    // When the user clicks anywhere outside of the modal, close it
+                    window.onclick = function (event) {
+                        if (event.target == modal) {
+                            modal.style.display = "none";
+                        }
+                    }
+                </script>
+                </body>
+                </html>

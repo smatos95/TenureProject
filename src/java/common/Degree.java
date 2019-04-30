@@ -1,0 +1,126 @@
+package common;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import javax.servlet.jsp.JspWriter;
+
+/** 
+ * Represents a documented degree submitted by the user.
+ * 
+ * @author Gryphon Ayers (2019)
+ */
+public class Degree implements Tableable {
+    private final int degreeID; // primary key
+    private int application; // foreign key - refers to applicationID
+    private String institution;
+    private String credential;
+    private String fieldOfStudy;
+    private String attendancePeriods;
+    private String degreeDate;
+    private int transcript; // foreign key - refers to narrativeID
+
+    public Degree(int degreeID) {
+        this.degreeID = degreeID;
+    }
+
+    public int getApplication() {
+        return application;
+    }
+
+    public void setApplication(int application) {
+        this.application = application;
+    }
+
+    public String getInstitution() {
+        return institution;
+    }
+
+    public void setInstitution(String institution) {
+        this.institution = institution;
+    }
+
+    public String getCredential() {
+        return credential;
+    }
+
+    public void setCredential(String credential) {
+        this.credential = credential;
+    }
+
+    public String getFieldOfStudy() {
+        return fieldOfStudy;
+    }
+
+    public void setFieldOfStudy(String fieldOfStudy) {
+        this.fieldOfStudy = fieldOfStudy;
+    }
+
+    public String getAttendancePeriods() {
+        return attendancePeriods;
+    }
+
+    public void setAttendancePeriods(String attendancePeriods) {
+        this.attendancePeriods = attendancePeriods;
+    }
+
+    public String getDegreeDate() {
+        return degreeDate;
+    }
+
+    public void setDegreeDate(String degreeDate) {
+        this.degreeDate = degreeDate;
+    }
+
+    public int getTranscript() {
+        return transcript;
+    }
+
+    public void setTranscript(int transcript) {
+        this.transcript = transcript;
+    }
+
+    public int getDegreeID() {
+        return degreeID;
+    }
+
+    @Override
+    public void printSummaryRow(JspWriter out) throws IOException {
+        out.println("<td>" + institution + "</td>");
+        out.println("<td>" + credential + "</td>");
+        out.println("<td>" + fieldOfStudy + "</td>");
+    }
+
+    @Override
+    public void printCompleteRow(JspWriter out) throws IOException {
+        out.println("<td>" + degreeID + "</td>");
+        out.println("<td>" + application + "</td>");
+        out.println("<td>" + institution + "</td>");
+        out.println("<td>" + credential + "</td>");
+        out.println("<td>" + fieldOfStudy + "</td>");
+        out.println("<td>" + attendancePeriods + "</td>");
+        out.println("<td>" + degreeDate + "</td>");
+        out.println("<td>" + transcript + "</td>");
+    }
+
+    @Override
+    public void printSummaryLabels(JspWriter out) throws IOException {
+        out.println("<th>" + "Institution" + "</th>");
+        out.println("<th>" + "Credential Earned" + "</th>");
+        out.println("<th>" + "Field of Study" + "</th>");
+        out.println("<th>" + "Action" + "</th>");
+    }
+
+    @Override
+    public void printCompleteLabels(JspWriter out) throws IOException {
+        out.println("<td>" + "ID" + "</td>");
+        out.println("<td>" + "applicationID" + "</td>");
+        out.println("<td>" + "institution" + "</td>");
+        out.println("<td>" + "credential" + "</td>");
+        out.println("<td>" + "fieldOfStudy" + "</td>");
+        out.println("<td>" + "attendancePeriods" + "</td>");
+        out.println("<td>" + "degreeDate" + "</td>");
+        out.println("<td>" + "transcript (mediaID)" + "</td>");
+    }
+    
+}

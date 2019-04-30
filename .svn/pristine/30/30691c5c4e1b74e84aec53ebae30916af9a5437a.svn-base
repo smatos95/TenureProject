@@ -1,0 +1,154 @@
+package servlets;
+
+import common.Application;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.IOUtils;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+
+/**
+ * Servlet for constructing and printing the full tenure application document.
+ *
+ * @author Riley Hughes (2019)
+ */
+@WebServlet(name = "PrintAllPagesServlet", urlPatterns = {"/PrintAllPagesServlet"})
+public class PrintAllPagesServlet extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        Application a = (Application) request.getSession().getAttribute("currentapp");
+        XWPFDocument d = (new utilities.POICoverPage(a)).generateDoc();
+        XWPFDocument document = (new utilities.POIFirstPage(a)).generateDoc();
+        XWPFDocument document2 = (new utilities.POIEduCred(a)).generateDoc();
+        XWPFDocument document3 = (new utilities.POITeachingExp(a)).generateDoc();
+        XWPFDocument document4 = (new utilities.POIWorkExp(a)).generateDoc();
+        Collection<XWPFDocument> docsToSend = new ArrayList<>();
+        docsToSend.add(d);
+        docsToSend.add(document);
+        docsToSend.add(document2);
+        docsToSend.add(document3);
+        docsToSend.add(document4);
+
+        response.setContentType("application/zip");
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.addHeader("Content-Disposition", "attachment; filename=\"Tenure Application.zip\"");
+
+        OutputStream os = null;
+        BufferedOutputStream bos = null;
+
+        ZipOutputStream zos = null;
+
+        try {
+            os = response.getOutputStream();
+            bos = new BufferedOutputStream(os);
+
+            zos = new ZipOutputStream(bos);
+            zos.setLevel(ZipOutputStream.STORED);
+
+            sendMultipleFiles(zos, docsToSend);
+        } catch (IOException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        } finally {
+            if (zos != null) {
+                zos.finish();
+                zos.flush();
+                IOUtils.closeQuietly(zos);
+            }
+            IOUtils.closeQuietly(bos);
+            IOUtils.closeQuietly(os);
+        }
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+    private void sendMultipleFiles(ZipOutputStream zos, Collection<XWPFDocument> docsToSend) throws IOException {
+        int i = 0;
+        String[] names = {"CoverPage.docx", "FirstPage.docx", "EduCred.docx", 
+            "TeachingExperience.docx", "WorkExperience.docx"};
+        for (XWPFDocument d : docsToSend) {
+            ByteArrayOutputStream b = null;
+            InputStream inStream = null;
+            ZipEntry ze = null;
+
+            try {
+                b = new ByteArrayOutputStream();
+                d.write(b);
+                inStream = new ByteArrayInputStream(b.toByteArray());
+
+                ze = new ZipEntry(names[i]);
+                ze.setComment("Dummy file");
+
+                zos.putNextEntry(ze);
+
+                IOUtils.copy(inStream, zos);
+            } catch (IOException e) {
+            } finally {
+                IOUtils.closeQuietly(b);
+                IOUtils.closeQuietly(inStream);
+                if (ze != null) {
+                    zos.closeEntry();
+                }
+            }
+            i++;
+        }
+    }
+}

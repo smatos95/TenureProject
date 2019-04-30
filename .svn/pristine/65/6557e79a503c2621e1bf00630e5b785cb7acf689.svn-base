@@ -1,0 +1,404 @@
+<%-- 
+    Document   : educationalCred
+    Created on : Feb 24, 2019, 8:35:54 PM
+               : Shane Panagakos (2019)
+    Author     : Steven Matos (2019)
+--%>
+
+<%@page import="java.util.List"%>
+<%@page import="java.time.LocalDateTime"%>
+<%@page import="java.util.Iterator"%>
+<%@page import="common.Degree"%>
+<%@page import="common.Application"%>
+<%@page import="common.BuUser"%>
+<%@page import="mysql.DegreeManager"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Educational Credentials</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+        <script src="scripts/popUpModal.js"></script>
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script src="scripts/wordCounterScript.js"></script>
+    </head>
+    <body bgcolor="#F4ECD9">
+        <%  
+            /**
+             * This java code sets up all the objects used for a user's educational credentials. 
+             * It returns the current <code>HttpSession</code> if it exists and will not create a new one.
+             * It creates an <code>Object</code> unique to the current session ID.
+             * It creates a <code>DegreeManager</code> to manage all the degree's the user has currently made.
+             * It creates an <code>Application</code> and synchronizes it to the current application of the user
+             * It creates an <code>Integer</code> object and synchronizes it to the current credential being worked upon.
+             * It creates an <code>int</code> used to uniquely id each delete button later in the program.
+             * 
+             * @param sess The current session. Set to false because the user should only be able to get to this page if it currently exists and cannot create a new one.
+             * @param lock An object unique to the session's ID used to synchronize the current application and current credential.
+             * @param dm The DegreeManager for the user's degree pool.
+             * @param app The user's current application being worked on.
+             * @param currentcred An Integer object used to set the current credential the user is working on.
+             * @param i An int used to uniquely name the id's of the delete buttons for each credential.
+             */
+            
+            HttpSession sess = request.getSession(false);
+            final Object lock = sess.getId().intern();
+            DegreeManager dm = new DegreeManager();
+            Application app;
+            Integer currentcred;
+            int i = 0;
+            synchronized (lock) {
+                app = (Application) sess.getAttribute("currentapp");
+                currentcred = (Integer) sess.getAttribute("currentcred");
+            }
+            /**
+             * This java code sets up to contain multiple degrees for the user's application. It then
+             * checks to see if the user has an application and then gets all the degrees in that application. From there it sets
+             * if there are any degrees based upon if the degrees exist and the size of the degrees is greater than 0.
+             * It creates a <code>List</code> of <code>Degree</code> objects and for the user to fill.
+             * It creates a <code>boolean</code> to check if the user currently has any degrees tied to the application.
+             * It creates a <code>Degree</code> object for the current degree to be added.
+             *  
+             * @param degs The list of degrees that the user has tied to their application.
+             * @param degsExist A boolean to check and see if the user has degrees tied to their current application.
+             * @param d A degree object used to populate the table with all user's current degrees.
+             */
+            List<Degree> degs = null;
+            boolean degsExist = false;
+            Degree d = null;
+            if (app != null) {
+                degs = dm.getDegreesByApplication(app.getApplicationID());
+            }
+            degsExist = (degs != null && degs.size() > 0);
+
+            /**
+             * This java code sets the default values for all the fields used to create a degree.
+             * @param institution A String object that represents the intstitution the user attended for their degree.
+             * @param degreeAwarded A String object that represents the degree the user was awarded from the institution they attended.
+             * @param field A String object that represents the field the user was studying in to acquire their degree.
+             * @param attendFrom A String object that represents the date the user began attendance at the institution.
+             * @param attendTo A String object that represents the date the user finished at their institution.
+             * @param degreeConf A String object that represents the date the user was awarded their degree from their institution.
+             */
+            
+            String institution = "";
+            String degreeAwarded = "";
+            String field = "";
+            String attendFrom = LocalDateTime.now().toString().substring(0, LocalDateTime.now().toString().indexOf("T"));
+            String attendTo = LocalDateTime.now().toString().substring(0, LocalDateTime.now().toString().indexOf("T"));
+            String degreeConf = LocalDateTime.now().toString().substring(0, LocalDateTime.now().toString().indexOf("T"));
+
+            
+            /**
+             * This java code gets the degree that corresponds to the current credential. It checks to see if the degree exists
+             * and that the current credential is not null. Then it checks through every degree in the list of degrees and assigns it
+             * as soon as it finds the degree with the same id as the current credential
+             */
+            
+            if (degsExist && currentcred != null) {
+                for (Degree deg : degs) {
+                    if (deg.getDegreeID() == currentcred) {
+                        d = deg;
+                        break;
+                    }
+                }
+            } else {
+                synchronized (lock) { // no degrees for application or currentcred not set
+                    sess.setAttribute("currentcred", new Integer(-1));
+                }
+            }
+
+            /**
+             * This java code checks to see that the degree is not null. It then begins to check every field and fills them based off
+             * of the data in the corresponding datebase entry in the degree table.
+             */
+            
+            if (d != null) {
+                if (d.getInstitution() != null) {
+                    institution = d.getInstitution();
+                }
+                if (d.getCredential() != null) {
+                    degreeAwarded = d.getCredential();
+                }
+                if (d.getFieldOfStudy() != null) {
+                    field = d.getFieldOfStudy();
+                }
+                if (d.getAttendancePeriods() != null) {
+                    attendFrom = d.getAttendancePeriods().substring(0, d.getAttendancePeriods().indexOf("%"));
+                    attendTo = d.getAttendancePeriods().substring(d.getAttendancePeriods().indexOf("%") + 1);
+                }
+                if (d.getDegreeDate() != null) {
+                    degreeConf = d.getDegreeDate().substring(d.getDegreeDate().indexOf("%") + 1);
+                }
+            }
+            if(request.getSession().getAttribute("isPopup") != null)
+            {%>
+            <button id="open_popup" hidden="hidden" name="hiddenPopup" onClick="openModal()"></button>
+            <%}
+        %>
+        <jsp:include page="sideTabs.jsp"/>
+        <script>
+            document.getElementsByName("dropbutton")[0].className = "dropdown-btn active";
+            document.getElementsByName("eduCred")[0].className = "inDropdown active";
+            
+            //keeps the dropdown open when element is clicked
+            window.onload = function () {
+                document.getElementById("backgroundInformationDropdown").click();
+                if(document.getElementById("open_popup") !== null)
+                    document.getElementById("add_credentials").click();
+            };
+        </script>
+        <div id="bgkInfo" class="tabcontent">
+
+            <div class="paper"> 
+                <div class="paperTop">
+
+
+
+                    <div class="pageTitle">Educational Credentials</div>
+                    <center><div>
+                            <div class ="current_apps_subtitle">Current Application:</div> 
+                            <div class ="current_apps_displayBox">
+                                <% if (app == null) {%>
+                                No Application Selected
+                                <%} else {
+                                %>
+                                <%=app.getFriendlyName()%>
+                                <%}%>
+                            </div>
+                        </div></center>
+                    <hr>
+                </div>
+                <div class="paperContents">
+                    <p class="description">List the following information for the Institution(s) you have received degrees from: </p>
+                    <form id="degree_table" method="POST">
+                        <%if (degsExist) {%>
+
+                        <table id ="insertTables">
+                            <%
+                                /**
+                                 * The following java code is used to create an html table that represents all the degree credentials the user currently has tied to their application.
+                                 * From here the user can edit or delete a credential.
+                                 */
+                                
+                                out.print("<caption class = 'tableHeaderTitle'>Submitted Credentials</caption>");
+
+                                /**
+                                 * This line of java code creates the first row of the degree table.
+                                 * 
+                                 * @param degItr An iterator that iterates through all current degrees created by the user for their current application.
+                                 * @param deg The degree object that represents the degree currently being iterated upon.
+                                 */
+                                
+                                Iterator<Degree> degsItr = degs.iterator();
+                                Degree deg = degsItr.next();
+                                out.print("<tr>");
+                                deg.printSummaryLabels(out);
+                                out.println("</tr>");
+
+                                /**
+                                 * This java code creates the content of the first degree, along with an edit and delete button for it.
+                                 */
+                                
+                                out.print("<tr>");
+                                deg.printSummaryRow(out);
+                                out.println("<td><button onclick='clickPopup()' name='updateCred' class ='action_button' type='submit' formaction='UpdateEduCredServlet' value='" + deg.getDegreeID() + "'>Edit</button> <button class ='action_button' type='submit' id='edu_cred_delete_button' formaction='UpdateEduCredServlet' onClick='deleteEduCred()' value='" + deg.getDegreeID() + "'>Delete</button></td>");
+
+                                out.println("</tr>");
+                                
+                                /**
+                                 * This while loop iterates through all the degrees created and prints them into the table.
+                                 * 
+                                 * @param idName A String that uses the <code>int</code> i to uniquely name the delete buttons, otherwise the method for deletion will only be called for the first table entry with
+                                 * the calling id.
+                                 */
+                                
+                                while (degsItr.hasNext()) {
+                                    String idName = Integer.toString(i) + "_edu_cred_delete_button";
+                                    deg = degsItr.next();
+                                    out.print("<tr>");
+                                    deg.printSummaryRow(out);
+                                    out.println("<td><button onclick='clickPopup()' class ='action_button' id type='submit' formaction='EduCredAutofillServlet' name='updateCred' value='" + deg.getDegreeID() + "'>Edit</button> <button class ='action_button' type='submit' id='" + idName + "' formaction='UpdateEduCredServlet' onClick='whileDeleteEduCred(" + i + ")' value='" + deg.getDegreeID() + "'>Delete</button></td>");
+                                    out.println("</tr>");
+                                    i++;
+                                }
+                                out.println("</table>");%>
+                            <%} else {%>No credentials have been added.<%}%>
+                    </form>
+                    <div onclick="openModal()" class ="action_button" id="add_credentials"> Add Credentials </div>
+
+
+                    <div id ="myModal" class ="modal">
+                        <div class ="modal-content">
+                            <span class ="close">&times;</span>
+                            
+                            <span class="description">Insert your Educational Credentials</span>
+                            <hr>
+                            <form id="update_educred_page_form" action="UpdateEduCredServlet" method="POST">
+                                <div class="fieldLayout">Institution of Attendance for Degree <span style="margin-left: 8%" id="attendedInstitutionCurrent"><%=institution.length()%></span><span>/35</span>
+                                    <input id="attendedInstitution" type="text" name ="Institution" maxLength="35" class="generalTextboxStyle" oninput="updateCharCount('attendedInstitutionCurrent', 'attendedInstitution')" value="<%=institution%>" placeholder="Ex: University of Bloomsburg">                        
+                                </div>
+                                <div class="fieldLayout">Degree Awarded
+                                    <select name="degree" class="generalTextboxStyle">
+                                        <option <%if (degreeAwarded.equals("N/A")) {%> selected="selected"<%}%>>N/A</option>
+                                        <option <%if (degreeAwarded.equals("Associates")) {%> selected="selected"<%}%>>Associates</option>
+                                        <option <%if (degreeAwarded.equals("Bachelors")) {%> selected="selected"<%}%>>Bachelors</option>
+                                        <option <%if (degreeAwarded.equals("Masters")) {%> selected="selected"<%}%>>Masters</option>
+                                        <option <%if (degreeAwarded.equals("Doctoral")) {%> selected="selected"<%}%>>Doctoral</option>
+                                    </select>
+                                </div>
+
+                                <div class="fieldLayout">Field of Study <span style="margin-left: 31%" id="fieldOfStudyCurrent"><%=field.length()%></span><span>/35</span>
+                                    <input id="fieldOfStudy" type="text" name="field" class="generalTextboxStyle" oninput="updateCharCount('fieldOfStudyCurrent', 'fieldOfStudy')" maxLength="35" value="<%=field%>" placeholder="Ex: Computer Science">
+                                </div>
+                                <div class="fieldLayout">Attended From 
+                                    <input id="attendFrom"type="date" name="degreeFrom" class="generalTextboxStyle" value="<%=attendFrom%>">
+                                </div>
+                                <div class="fieldLayout">Attended To
+                                    <input type="date" name="degreeTo" class="generalTextboxStyle" value="<%=attendTo%>">
+                                </div>
+                                <div class="fieldLayout">Date of Degree Conferral
+                                    <input type="date" name="degreeConferralDate" class="generalTextboxStyle" value="<%=degreeConf%>">
+                                </div>
+                                <hr>
+                                <input type="submit" name="insert" class="action_button" value="Save Credential"/>
+                                <!--save button-->
+                                <input type="submit" class ="action_button" onclick="clickSave()" value="Update Existing"/>
+
+                            </form>
+
+                        </div>
+                    </div>
+                    <form id="update_educred_page_form" action="UpdateEduCredServlet" method="POST">
+                        <div class="footerButtons">
+                            <input type="submit" hidden="hidden" id="save_hidden_button">
+                            <hr>
+                            <input type="submit" name="teachFac" value="Continue"/>
+                            <input type="submit" formaction="PrintEducationalCredServlet" value="Export"/>
+                            <input type="submit" name="first" value="Back"/>
+
+                    </form>
+
+                    <form id='redirct_page' action='RedirectServlet' method='POST'>
+                        <!--skip button-->                    
+                        <input type="submit" name="teachFac" value="Skip"/>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script>
+            /**
+             * Activates and displays a vertical list of buttons which are set 
+             * to the side navigation in order to implement the dropdown feature. 
+             * 
+             * @param dropdown The button that drops down all the other buttons.
+             * @param i An interger used to iterate through all the children of the dropdown buttons.
+             * @param dropdownContent Any child of the dropdown button.
+             * 
+             */
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }
+        </script>
+        <script>
+            // This function allows the visible button 'saved' to be clicked through a hidden button
+            function clickSave()
+            {
+                document.getElementById("save_hidden_button").click();
+            }
+            function clickPopup()
+            {
+                document.getElementById("open_popup").click();
+            }
+        </script>
+
+        <script>
+            /**
+             * This method is initially called by the first delete button created. It gets the id of the button calling it and will rename it to deleteCred or cancel so when 
+             * it is sent to the servlet it will check to see the name of the button pressed. If it is deleteCred it will delete the credential, if it is cancel it will bypass
+             * the deletion and leave the table as it is.
+             * 
+             * @param deleteButton A boolean value that stores if the user clicked to delete or cancel deletion.
+             * @param deleteName The button that was clicked to trigger this function.
+             */
+            function deleteEduCred()
+            {
+                var deleteButton = confirm("Are you sure you want to delete this credential?");
+                var deleteName = document.getElementById("edu_cred_delete_button");
+                if (deleteButton === true)
+                {
+                    deleteName.name = "deleteCred";
+                } else
+                {
+                    deleteName.name = "cancel";
+                }
+            }
+            
+            /**
+             * This method is called by delete button's in the while loop. If the buttons are not uniquely named then the first button with the id of edu_delete_cred_button will be triggered
+             * and all other buttons will be ignored. This method is overloaded to accept an integer to uniquely id each button.
+             * 
+             * @param deleteButton A boolean value that stores if the user clicked to delete or cancel deletion.
+             * @param idName A string to hold the unique id of the button that triggers this method.
+             * @param deleteName2 The button that was clicked to trigger this function.
+             */
+            function whileDeleteEduCred(i)
+            {
+                var deleteButton = confirm("Are you sure you want to delete this credential?");
+                var idName = i + "_edu_cred_delete_button";
+                var deleteName2 = document.getElementById(idName);
+                if (deleteButton === true)
+                {
+                    deleteName2.name = "deleteCred";
+                } else
+                {
+                    deleteName2.name = "cancel";
+                }
+            }
+            
+            function updateEduCred()
+            {
+                var updateBtn = document.getElementById("update_cred");
+                updateBtn.name = "updateCred";
+            }
+
+        </script>
+        <script>
+            // Get the modal
+            var modal = document.getElementById('myModal');
+            // Get the <span> element that closes the modal
+            var span = document.getElementsByClassName("close")[0];
+            function openModal()
+            {
+                // Declare var thats going to be used to open modal
+                var open;
+                // When the user clicks the button, open the modal 
+                open.onclick = modal.style.display = "block";
+            }
+            // When the user clicks on <span> (x), close the modal
+            span.onclick = function () {
+                modal.style.display = "none";
+            };
+            // When the user clicks anywhere outside of the modal, close it
+            window.onclick = function (event) {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                }
+            };
+        </script>
+    </body>
+</html>

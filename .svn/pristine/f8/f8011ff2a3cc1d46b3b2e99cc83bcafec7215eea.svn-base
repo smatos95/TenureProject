@@ -1,0 +1,169 @@
+package common;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import javax.servlet.jsp.JspWriter;
+
+
+/**
+ * Represents an application submitted by a user.
+ * 
+ * @author Gryphon Ayers (2019)
+ */
+public class Application implements Tableable, Serializable {
+    private final int applicationID; // primary key
+    private int applicantUser; // foreign key - refers to BuUser
+    private String applicationType; // mapping from ENUM type in database
+    private LocalDateTime creationDate;
+    private LocalDateTime submissionDate;
+    private String department;
+    private String departmentChair;
+    private String chairPhone;
+    private String customFirstName;
+    private String customLastName;
+    private String friendlyName;
+
+    public Application(int applicationID) {
+        this.applicationID = applicationID;
+    }
+
+    public int getApplicationID() {
+        return applicationID;
+    }
+
+    public int getApplicantUser() {
+        return applicantUser;
+    }
+
+    public void setApplicantUser(int applicantUser) {
+        this.applicantUser = applicantUser;
+    }
+
+    public String getApplicationType() {
+        return applicationType;
+    }
+
+    public void setApplicationType(String applicationType) {
+        this.applicationType = applicationType;
+    }
+
+    public LocalDateTime getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    public LocalDateTime getSubmissionDate() {
+        return submissionDate;
+    }
+
+    public void setSubmissionDate(LocalDateTime submissionDate) {
+        this.submissionDate = submissionDate;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+    
+    public String getDepartmentChair() {
+        return departmentChair;
+    }
+
+    public void setDepartmentChair(String departmentChair) {
+        this.departmentChair = departmentChair;
+    }
+
+    public String getChairPhone() {
+        return chairPhone;
+    }
+
+    public void setChairPhone(String chairPhone) {
+        this.chairPhone = chairPhone;
+    }
+
+    public String getCustomFirstName() {
+        return customFirstName;
+    }
+
+    public void setCustomFirstName(String customFirstName) {
+        this.customFirstName = customFirstName;
+    }
+
+    public String getCustomLastName() {
+        return customLastName;
+    }
+
+    public void setCustomLastName(String customLastName) {
+        this.customLastName = customLastName;
+    }
+
+    public String getFriendlyName() {
+        return friendlyName;
+    }
+
+    public void setFriendlyName(String friendlyName) {
+        this.friendlyName = friendlyName;
+    }
+
+    @Override
+    public void printSummaryLabels(JspWriter out) throws IOException {
+        out.println("<td>"+"Name"+"</td>");
+        out.println("<td>"+"Department"+"</td>");
+        out.println("<td>"+"Type"+"</td>");
+        out.println("<td>"+"Created"+"</td>");
+        out.println("<td>"+"Submitted"+"</td>");
+    }
+
+    @Override
+    public void printCompleteLabels(JspWriter out) throws IOException {
+        out.println("<td>"+"ID"+"</td>");
+        out.println("<td>"+"User ID"+"</td>");
+        out.println("<td>"+"Name"+"</td>");
+        out.println("<td>"+"Type"+"</td>");
+        out.println("<td>"+"Created"+"</td>");
+        out.println("<td>"+"Submitted"+"</td>");
+        out.println("<td>"+"Department"+"</td>");
+        out.println("<td>"+"Chair"+"</td>");
+        out.println("<td>"+"Chair Phone#"+"</td>");
+        out.println("<td>"+"First"+"</td>");
+        out.println("<td>"+"Last"+"</td>");
+    }
+
+    @Override
+    public void printSummaryRow(JspWriter out) throws IOException {
+        out.println("<td>"+friendlyName+"</td>");
+        out.println("<td>"+department+"</td>");
+        out.println("<td>"+applicationType+"</td>");
+        out.println("<td>"+creationDate.format(DateTimeFormatter.ISO_DATE)+"</td>");
+        out.println("<td>"+
+                ((submissionDate == null) ? "N/A" : 
+                        submissionDate.format(DateTimeFormatter.ISO_DATE))
+                    +"</td>");
+    }
+
+    @Override
+    public void printCompleteRow(JspWriter out) throws IOException {
+        out.println("<td>"+applicationID+"</td>");
+        out.println("<td>"+applicantUser+"</td>");
+        out.println("<td>"+friendlyName+"</td>");
+        out.println("<td>"+applicationType+"</td>");
+        out.println("<td>"+creationDate.format(DateTimeFormatter.ISO_DATE)+"</td>");
+        out.println("<td>"+
+                ((submissionDate == null) ? "N/A" : 
+                        submissionDate.format(DateTimeFormatter.ISO_DATE))
+                    +"</td>");
+        out.println("<td>"+department+"</td>");
+        out.println("<td>"+departmentChair+"</td>");
+        out.println("<td>"+chairPhone+"</td>");
+        out.println("<td>"+customFirstName+"</td>");
+        out.println("<td>"+customLastName+"</td>");
+    }
+}

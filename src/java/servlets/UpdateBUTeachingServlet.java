@@ -1,0 +1,193 @@
+package servlets;
+
+import common.Application;
+import common.BuUser;
+import common.LocalExp;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Collection;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import mysql.ApplicationManager;
+import mysql.LocalExpManager;
+
+/**
+ * Servlet for processing database update requests from <code>BuTeachingHistory.jsp</code>.
+ * 
+ * @author Gryphon Ayers (2019)
+ */
+
+
+@WebServlet(name = "UpdateBUTeachingServlet", urlPatterns = {"/UpdateBUTeachingServlet"})
+public class UpdateBUTeachingServlet extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        HttpSession sess = request.getSession(false);
+        final Object lock = sess.getId().intern();
+        
+        Integer appCreated = null;
+        
+        ApplicationManager appManager = new ApplicationManager();
+        LocalExpManager localExpManager = new LocalExpManager();
+        
+        // Set an application with the details the user entered. Since no data
+        // stored in an application object is set in this page, only basic info
+        // is set.
+        Application app;
+        
+        // get other session-based variables
+        BuUser user;
+        String apptype;
+        Integer expNumber;
+        
+        synchronized (lock) {
+            user = (BuUser) sess.getAttribute("user");
+            apptype = (String) sess.getAttribute("apptype");
+            expNumber = (Integer) sess.getAttribute("currentexp");
+            app = (Application) sess.getAttribute("currentapp");
+        }
+        
+        // Get user's apps
+        Collection<Application> applications = appManager.getApplicationsByUserID(user.getUserNumber());
+        
+        if (app == null) {
+            app = new Application(0);
+            app.setCreationDate(LocalDateTime.now());
+        } else {
+            if (app.getCreationDate() == null)
+                app.setCreationDate(LocalDateTime.now());
+        }
+        app.setApplicantUser(user.getUserNumber());
+        
+        if (apptype.equalsIgnoreCase("Tenure"))
+            app.setApplicationType("tenure");
+        else if (apptype.equalsIgnoreCase("Promotion"))
+            app.setApplicationType("promotion");
+        
+        // get parameters from the page
+        LocalExp localExp;
+        
+        // check whether to update or insert, if either
+        if (request.getParameter("insert") != null) {
+            // add new credential if the new credential button was clicked
+            localExp = new LocalExp(0);
+        } else if (expNumber != null && expNumber >= 0) {
+            // get the degree requested and check for valid access
+            localExp = localExpManager.getLocalExp(expNumber);
+            if (!(localExp.getApplication() == app.getApplicationID() &&
+                app.getApplicantUser() == user.getUserNumber())) {
+                // add a new credential instead of allowing an invalid access
+                localExp = new LocalExp(0);
+            }
+        } else {
+            // no degree to operate on, just forward instead
+            if (request.getParameter("studentEvaluations") != null)
+            {
+                request.getRequestDispatcher("jsp/studentEvaluations.jsp").forward(request, response);
+            }
+            else if(request.getParameter("print") != null)
+            {
+                request.getRequestDispatcher("/PrintBUTeachingHistoryServlet").forward(request, response);
+            }
+            else if (request.getParameter("teachingNarrative") != null)
+            {
+                request.getRequestDispatcher("jsp/teachingNarrative.jsp").forward(request, response);
+            }
+            else {
+                request.getRequestDispatcher("jsp/BuTeachingHistory.jsp").forward(request, response);
+            }
+            return;
+        }
+        
+        // Set record info
+        localExp.setCourseCode(request.getParameter("courseCode"));
+        localExp.setCourseName(request.getParameter("courseName"));
+        localExp.setSections(request.getParameter("sections"));
+        localExp.setSemester(request.getParameter("semester"));
+        localExp.setYear(request.getParameter("year"));
+        
+        // If the user has no apps, make a new one. If they have apps, then
+        // update their current one.
+        if (applications == null || applications.isEmpty()) {
+            appCreated = appManager.insertApplication(app);
+        }
+        
+        if (appCreated != null) synchronized (lock) {
+                    sess.setAttribute("currentapp", app);
+        }
+        
+        // If the user created a new degree, insert it. If they are updating
+        // a current one, then do so.
+        if (localExp.getLocalExpID()== 0) {
+            localExp.setApplication(app.getApplicationID());
+            localExpManager.insertLocalExp(localExp);
+        } else
+            localExpManager.updateLocalExp(localExp);
+        
+        // Send the user back to the educred page
+        if (request.getParameter("studentEvaluations") != null) {
+            request.getRequestDispatcher("jsp/studentEvaluations.jsp").forward(request, response);
+        } else if(request.getParameter("print") != null) {
+            request.getRequestDispatcher("/PrintBUTeachingHistoryServlet").forward(request, response);
+        } else if (request.getParameter("teachingNarrative") != null) {
+            request.getRequestDispatcher("jsp/teachingNarrative.jsp").forward(request, response);
+        } else {
+            request.getRequestDispatcher("jsp/BuTeachingHistory.jsp").forward(request, response);
+        }
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+}

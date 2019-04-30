@@ -1,0 +1,19 @@
+package database;
+
+import common.SvcActivity;
+import java.util.Collection;
+
+/**
+ * An <code>interface</code> that specifies allowed operations on service 
+ * activity records in the database.
+ *
+ * @author Gryphon Ayers (2019)
+ */
+public interface SvcActivityManager {
+    public SvcActivity getSvcActivity(int svcActivityID);
+    public Collection<SvcActivity> getSvcActivitysByApplication(int application);
+    public boolean insertSvcActivity(SvcActivity svcActivity);
+    public SvcActivity updateSvcActivity(SvcActivity svcActivity);
+    public boolean deleteSvcActivity(int svcActivityID);
+    public Collection<SvcActivity> getAllSvcActivitys();
+}

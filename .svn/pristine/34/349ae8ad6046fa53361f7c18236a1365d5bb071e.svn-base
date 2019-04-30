@@ -1,0 +1,177 @@
+<%-- 
+    Document   : coverpage
+    Created on : Feb 24, 2019, 2:05:23 PM
+               : Shane Panagakos (2019)
+    Author     : Jake Gordon (2019)
+--%>
+
+<%@page import="common.Profile"%>
+<%@page import="mysql.ProfileManager"%>
+<%@page import="common.Application"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Cover Page</title>
+        <link rel ="icon" href="../images/husky.png">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+        <script src="scripts/wordCounterScript.js"></script> 
+    </head>
+    <body bgcolor="#F4ECD9">
+         <%
+             
+             /**
+              * This java code is used to set all the database objects used by this page.
+              * Sets the <code>HttpSession</code> to true.
+              * Sets the <code>BuUser</code> object with the current user of the tenure application.
+              * Sets the <code>Application</code> object to be the current application the user is working on.
+              * Sets the <code>ProfileManager</code> to manage the user's profile.
+              * Sets the <code>Profile</code> to be the current user's profile.
+              * Creates strings for all of the inputs that are used in this page. It checks to see that the user
+              * has an application and sets the data fields to autofill with the corresponding contents of the database.
+              * If the user does not have an application or the database fields are empty it sets them with default values.
+              * 
+              * @param use The current user of the tenure application
+              * @param a The current application the user is editting.
+              * @param pm The profile manager for the current user's profile.
+              * @param p The profile for the current user.
+              * @param first A String that holds the user's first name field.
+              * @param last A String that holds the user's last name field.
+              * @param rank A String that holds the user's current rank field.
+              * @param dept A String that holds the current user's department name field.
+              */
+             
+             HttpSession session1 = request.getSession(true);
+                    common.BuUser use = (common.BuUser) session1.getAttribute("user");
+                    Application a = (Application) session1.getAttribute("currentapp");
+                    
+                    ProfileManager pm = new ProfileManager();
+                    Profile p = pm.getProfileByUserID(use.getUserNumber());
+                    
+                    String first;
+                    String last;
+                    String rank;
+                    String dept;
+                    
+                    if (a == null)
+                    {
+                        first = use.getFirstName();
+                        last = use.getLastName();
+                        dept = "";
+                    }
+                    else
+                    {
+                        if (!((first = a.getCustomFirstName()) != null))
+                            first = use.getFirstName();
+                        if (!((last = a.getCustomLastName()) != null))
+                            last = use.getLastName();
+                        if (!((dept = a.getDepartment()) != null))
+                            dept = "";
+                    }
+                    
+                    if (p == null) {
+                        rank = "Select a Rank";
+                    } else {
+                        if (!((rank = p.getRank()) != null))
+                            rank = "Select a Rank";
+                    }
+                    %>
+                    <jsp:include page="sideTabs.jsp"/>
+                    <script>
+                        document.getElementsByName("cover")[0].className = "tabbuttons active";
+                    </script>
+        
+        <div id="coverpage" class="tabcontent paper">
+            <div class="paperTop">
+                
+                <!--Save-->
+                <input type="submit" onclick="clickSave()" value="Save"/>
+                
+                <div class="pageTitle">Cover Page</div>
+                <center><div>
+                        <div class ="current_apps_subtitle">Current Application:</div> 
+                        <div class ="current_apps_displayBox">
+                            <% if (request.getSession().getAttribute("currentapp") == null) {%>
+                            No Application Selected
+                            <%} else {
+                                Application current = (Application) request.getSession().getAttribute("currentapp");
+                            %>
+                            <%=current.getFriendlyName()%>
+                            <%}%>
+                        </div>
+                        </div></center>
+                <hr>
+            </div>
+            
+            <div class="paperContents">
+             <form id="update_cover_page_form" action="UpdateCoverPageServlet" method="POST">
+                
+                    
+                       <div class="fieldLayout"style="display: inline-block">First Name <span style="margin-left: 42%" id="firstNameCurrent"><%=first.length()%></span><span id="coverPageFirstNameMaximum">/12</span>                
+                    <input id="firstName" type="text" name="customfirst" maxLength="12" oninput="updateCharCount('firstNameCurrent', 'firstName')" class="generalTextboxStyle" value="<%=first%>" placeholder="John">
+                 </div><br/><br/>   
+                 
+                <div class="fieldLayout">Last Name <span style="margin-left: 21.5%" id="lastNameCurrent"><%=last.length()%></span><span id="coverPageLasttNameMaximum">/18</span>
+                    <input id="lastName" type="text" name="customlast" oninput="updateCharCount('lastNameCurrent', 'lastName')" class="generalTextboxStyle" maxLength="18" value="<%=last%>" placeholder="Doe">
+                </div><br/>  
+                
+                <div class="fieldLayout">Current Rank
+                    <select name="rank" class="generalDropdownStyle" style="min-width: 30.6%;" >
+                        <option value="" dissabled selected hidden <%if (rank.equals("Select a Rank")){%> selected="selected"<%}%>dissabled selected>TEST</option>
+                        <option value="Instructor" <%if (rank.equals("Instructor")){%> selected="selected"<%}%>>Instructor</option>
+                        <option value="Assistant Professor" <%if (rank.equals("Assistant Professor")){%> selected="selected"<%}%>>Assistant Professor</option>
+                        <option value="Associate Professor" <%if (rank.equals("Associate Professor")){%> selected="selected"<%}%>>Associate Professor</option>
+                    </select>
+                </div><br/> 
+                    
+                <div class="fieldLayout">Name of Department <span style="margin-left: 36%" id="nameOfDepartmentCurrent"><%=dept.length()%></span><span id="coverPageNameOfDepartmentMaximum">/60</span>
+                    <input id="departmentName" type ="text" name="deptname" class="generalTextboxStyle" style="min-width: 50%;" maxLength="60" oninput="updateCharCount('nameOfDepartmentCurrent', 'departmentName')" value="<%=dept%>" placeholder="Ex: Department of Mathematical and Digital Sciences">
+                </div><br/> 
+            </div>
+            <div class="footerButtons">
+                
+                
+                <hr>
+                <input type="submit" hidden="hidden" id="save_hidden_button">
+                <input type="submit" name="first" value="Continue"/>
+                <input type="submit" name="print" value="Export"/>
+                <input type="submit" name="overview" value="Back"/>  
+                </form>
+                <!--Skip and Back Button-->
+                <form id='redirct_page' action='RedirectServlet' method='POST'>     
+                    <input type="submit" name="first" value="Skip"/>                                            
+                </form>  
+            </div>
+                </div>
+                
+                <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+                    
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }           
+        </script>
+        <script>
+            // This function allows the visible button 'saved' to be clicked through a hidden button
+            function clickSave()
+            { 
+                document.getElementById("save_hidden_button").click();
+            }
+         </script>
+         <!--Updates the word count-->      
+    </body>
+</html>

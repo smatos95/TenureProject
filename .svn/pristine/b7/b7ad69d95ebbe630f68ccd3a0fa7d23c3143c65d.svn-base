@@ -1,0 +1,106 @@
+<%-- 
+    Document   : myApplication
+    Created on : Mar 24, 2019, 2:04:39 PM
+    Author     : Jake Gordon (2019)
+--%>
+
+<%@page import="java.util.Iterator"%>
+<%@page import="java.util.Collection"%>
+<%@page import="common.Application"%>
+<%@page import="common.BuUser"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <title>My Application</title>
+    </head>
+    <body bgcolor="#F4ECD9">
+        <%
+        //common.BuUser user = (common.BuUser) request.getSession().getAttribute("user");
+        Collection<Application> appCollection = (Collection<Application>) request.getSession().getAttribute("apps");
+        %>
+        <jsp:include page="sideTabs.jsp"/>
+        <script>
+            document.getElementsByName("appselect")[0].className = "tabbuttons active";
+        </script>
+        <div class="paper">
+        <div class="pageTitle">My Applications</div>        
+        <span style="font-weight:bold;font-size: calc(26px + 1vw);">Current Application:</span> 
+        <span style="background-color: gainsboro; padding:0.5%; border-radius:6px;">Click below to start an application or edit an existing one</span>
+        <ul>
+            <li>Start a new Application: 
+            <form id="send_to_home_form" action="CreateApplicationServlet" method="POST">
+                <input type="submit" id="display_app_new_tenure_button" value="Create New Tenure Application" name="tenure"><br>
+                <input type="submit" id="display_app_new_promotion_button" value="Create New Promotion Application" name="promotion">
+            </form></li>
+            <li>Edit an Existing Application: 
+            <form id='app_selector_form' action='SetApplicationServlet' method='POST'>
+                            Tenure Application: <select id="display_app_appselect_dropdown" name='appselect'>
+                                <%
+                                    // Go through the apps and add them as options to select from
+                                    Iterator<Application> appIterator = appCollection.iterator();
+                                    Application temp;
+                                    while (appIterator.hasNext()) 
+                                    {
+                                        temp = appIterator.next();
+                                        if(temp.getApplicationType().equalsIgnoreCase("tenure"))
+                                        {
+                                            
+                                        
+                                        
+                                %>
+                                <option value=<%=temp.getApplicationID()%>>
+                                    <%=temp.getApplicationType() + " application created on " + temp.getCreationDate().toString().substring(0, 10)%>
+                                </option>     
+                                      <%}
+                                    }%>
+                            </select>                               
+                            <input type='submit' name='submitTenure' id="display_app_submit_choice_button" value="Edit" />    
+                            </form>
+                            <form id='app_selector_form' action='SetApplicationServlet' method='POST'>
+                            Promotion Application: <select id="display_app_appselect_dropdown" name='appselect'>
+                                <%
+                                    // Go through the apps and add them as options to select from
+                                    appIterator = appCollection.iterator();
+                                    while (appIterator.hasNext()) 
+                                    {
+                                        temp = appIterator.next();
+                                        if(temp.getApplicationType().equalsIgnoreCase("promotion"))
+                                        {
+                                %>
+                                <option value=<%=temp.getApplicationID()%>>
+                                    <%=temp.getApplicationType() + " application created on " + temp.getCreationDate().toString().substring(0, 10)%>
+                                </option>
+                                      <%}
+                                    }%>
+                            </select>
+                            <input type='submit' name='submitPromotion' id="display_app_submit_choice_button" value="Edit" />
+                            </form>
+                            </li>
+        </ul>
+                            </div>
+                           
+        <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>
+
+
+

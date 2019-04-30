@@ -1,0 +1,205 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package servlets;
+
+import common.Application;
+import common.Degree;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Collection;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import mysql.DegreeManager;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+
+/**
+ *
+ * Steven Matos (2019)
+ */
+
+@WebServlet(name = "PrintEducationalCredServlet", urlPatterns =
+{
+    "/PrintEducationalCredServlet"
+})
+public class PrintEducationalCredServlet extends HttpServlet{
+    
+    String[] months = {"January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    };
+/**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException 
+    {
+       DegreeManager degreeManager = new DegreeManager();
+       Application application = (Application) request.getSession().getAttribute("currentapp");      
+       Collection<Degree> degrees = degreeManager.getDegreesByApplication(application.getApplicationID());
+       Degree degree = degrees.iterator().next();
+       
+  
+       XWPFDocument document = new XWPFDocument();
+       
+        XWPFParagraph institution = document.createParagraph();
+        institution.setSpacingAfter(-1);
+        institution.setSpacingBetween(1.5);
+        institution.setPageBreak(true);
+        XWPFRun bolded1 = institution.createRun();
+        bolded1.setBold(true);
+        bolded1.setText("Institution:");
+        bolded1.addTab();
+        bolded1.addTab();
+        XWPFRun info1 = institution.createRun();
+        info1.setText(degree.getInstitution());
+        
+        XWPFParagraph degreeField = document.createParagraph();
+        degreeField.setSpacingAfter(-1);
+        degreeField.setSpacingBefore(-1);
+        degreeField.setSpacingBetween(1.5);
+        XWPFRun bolded2 = degreeField.createRun();
+        bolded2.setBold(true);
+        bolded2.setText("Degree:");
+        bolded2.addTab();
+        bolded2.addTab();
+        bolded2.addTab();
+        
+        XWPFRun info2 = degreeField.createRun();
+        info2.setText(degree.getCredential());
+        
+        XWPFParagraph fieldOfStudy = document.createParagraph();
+        fieldOfStudy.setSpacingAfter(-1);
+        fieldOfStudy.setSpacingBefore(-1);
+        fieldOfStudy.setSpacingBetween(1.5);
+        XWPFRun bolded3 = fieldOfStudy.createRun();
+        bolded3.setBold(true);
+        bolded3.setText("Field of Study:");
+        bolded3.addTab();
+        bolded3.addTab();
+        XWPFRun info3 = fieldOfStudy.createRun();
+        info3.setText(degree.getFieldOfStudy());
+        
+        XWPFParagraph dateOfDegree = document.createParagraph();
+        dateOfDegree.setSpacingAfter(-1);
+        dateOfDegree.setSpacingBefore(-1);
+        dateOfDegree.setSpacingBetween(1.5);
+        XWPFRun bolded4 = dateOfDegree.createRun();
+        bolded4.setBold(true);
+        bolded4.setText("Dates of Attendance:");
+        bolded4.addTab();
+        
+        XWPFRun info4 = dateOfDegree.createRun();
+        String attendanceFrom = degree.getAttendancePeriods().substring(0, degree.getAttendancePeriods().indexOf("%"));
+        String attendanceTo = degree.getAttendancePeriods().substring(degree.getAttendancePeriods().indexOf("%") + 1);
+        info4.setText(attendanceFrom.substring(attendanceFrom.indexOf("-") + 1, attendanceFrom.indexOf("-") + 3) + "/"
+        + attendanceFrom.substring(0, attendanceFrom.indexOf("-")) + " - "
+        + attendanceTo.substring(attendanceFrom.indexOf("-") + 1, attendanceFrom.indexOf("-") + 3) + "/"
+        + attendanceTo.substring(0, attendanceFrom.indexOf("-")));
+        
+        XWPFParagraph dateOfAttn = document.createParagraph();
+        dateOfAttn.setSpacingAfter(-1);
+        dateOfAttn.setSpacingBefore(-1);
+        dateOfAttn.setSpacingBetween(1.5);
+        XWPFRun bolded5 = dateOfAttn.createRun();
+        bolded5.setBold(true);
+        bolded5.setText("Date of Degree:");
+        bolded5.addTab();
+        bolded5.addTab();
+       
+        XWPFRun info5 = dateOfAttn.createRun();
+        String degreeDate = degree.getDegreeDate();
+        String degreeMonth = months[Integer.parseInt(degreeDate.substring(degreeDate.indexOf("-") + 1, degreeDate.indexOf("-") + 3)) - 1];
+        int degreeDay = Integer.parseInt(degreeDate.substring(degreeDate.lastIndexOf("-") + 1));
+        String degreeDayString = Integer.toString(degreeDay);
+        switch (degreeDay) {
+            case 1:
+            case 21:
+            case 31:
+                degreeDayString += "st";
+                break;
+            case 2:
+            case 22:
+                degreeDayString += "nd";
+                break;
+            case 3:
+            case 23:
+                degreeDayString += "rd";
+                break;
+            default:
+                degreeDayString += "th";
+        }
+        String degreeYear = degreeDate.substring(0, degreeDate.indexOf("-"));
+        info5.setText(degreeMonth + " " + degreeDayString + ", " + degreeYear);
+        
+                  
+        // Set Download info
+        String relativePath = getServletContext().getRealPath("");
+        ServletContext context = getServletContext();
+        String mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        response.setContentType(mimeType);
+        String headerKey = "Content-Disposition";
+        String headerValue = String.format("attachment; filename=\"%s\"", "EducationalCredentials.docx");
+        response.setHeader(headerKey, headerValue);
+        
+        // Send the download!
+        OutputStream outStream = response.getOutputStream();
+        document.write(outStream);
+        
+        // Finish out.
+        outStream.close();
+    }
+    
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+}

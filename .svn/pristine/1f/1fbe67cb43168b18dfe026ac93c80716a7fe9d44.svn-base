@@ -1,0 +1,227 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package mysql;
+
+import common.ErrorLog;
+import database.SQLUtility;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.logging.Level;
+import utilities.WebErrorLogger;
+
+/**
+ * Represents a manager of the error's database, which implement
+ * <code>ErrorManager</code> interface.This class can be used to modify and
+ * extract the error's data which is stored in the database.
+ * @author Steven Matos (2019)
+ */
+
+public class ErrorManager implements database.ErrorManager{
+    
+    @Override
+    public Collection<ErrorLog> getAllLogs() {
+        Collection<ErrorLog> errors = new ArrayList<>();
+        String sql = "SELECT * FROM error_logs ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        ErrorLog err = null;
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            rs = stmt2.executeQuery();
+            if (rs == null) {
+                Web_MYSQL_Helper.closePreparedStatement(stmt2);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return errors;
+            }
+            while (rs.next()) {
+                err = SQLUtility.convertResultSetToErrorLogs(rs);
+                
+                errors.add(err);
+            }
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getAllLogs() error:" + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return errors;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return errors;
+    }
+    
+    
+    
+    /*
+    @Override
+    public ErrorLog addErr(ErrorLog err)
+    {
+        String sql = "INSERT INTO error_logs (EVENT_ID, EVENT_DATE, LEVEL, LOGGER, MSG, THROWABLE)"
+                + " VALUES (DEFAULT,?,?,?,?,?); ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);//Stop SQL insertion issues with prepared statements 
+            stmt2.setString(1, err.getEventDate().toString());
+            stmt2.setString(2, err.getLevel().trim());
+            stmt2.setString(3, err.getLogger().trim());
+            stmt2.setString(4, err.getMessage().trim());
+            stmt2.setString(5, err.getThrowable().trim());
+
+            stmt2.executeUpdate();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in addErr(ErrorLog err) err="+err+" error: "+ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return err;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        return getLogById(err.getEventID());//need to do it this way to get the user number set correctly
+    }
+    @Override
+    public boolean deleteErr(ErrorLog err)
+    {
+        String sql = "DELETE FROM error_logs WHERE EVENT_ID =?; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, err.getEventID());
+            stmt2.executeUpdate();
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return !isError(err);
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in deleteErr(ErrorLog err) " + err + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return false;
+        }
+    }
+    /*
+    @Override
+    public ErrorLog updateErr(ErrorLog err)
+    {
+        String sql = "UPDATE error_log SET loginName =?, userPassword=?, salt=?,"
+                + "firstName = ?, lastName=?, emailAddress=?,"
+                + "userRole=?, lastLoginTime=?, lastAttemptedLoginTime=?, loginCount = ?, attemptedLoginCount=?,"
+                + " locked=? where userNumber = ? ; ";
+        //User newUser = null;
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setString(1, user.getLoginName().trim());
+            stmt2.setString(2, user.getUserPassword().trim());
+            stmt2.setString(3, user.getSalt().trim());
+            stmt2.setString(4, user.getFirstName().trim());
+            stmt2.setString(5, user.getLastName().trim());
+            stmt2.setString(6, user.getEmailAddress().trim());
+            stmt2.setString(7, user.getUserRole().getRoleName());
+            stmt2.setString(8, user.getLastLoginTime().toString());
+            stmt2.setString(9, user.getLastAttemptedLoginTime().toString());
+            stmt2.setInt(10, user.getLoginCount());
+            stmt2.setInt(11, user.getAttemptedLoginCount());
+            stmt2.setBoolean(12, user.isLocked());
+            stmt2.setInt(13, user.getUserNumber());
+            
+
+            stmt2.executeUpdate();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in updateUser(User user) " + user + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return getUserByID(user.getUserNumber());
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        return getUserByID(user.getUserNumber());
+    }
+*/
+    /*
+    @Override
+    public ErrorLog getLogById(int eventID)
+    {
+        String sql = "SELECT * FROM error_log WHERE EVENT_ID = ? ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        ErrorLog err = null;
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, eventID);
+
+            rs = stmt2.executeQuery();
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closePreparedStatement(stmt2);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            //err = SQLUtility.convertResultSetToUser(rs);
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getUserByID(int userID) userID="+eventID + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return err;
+    }
+    
+    @Override
+    public Collection<ErrorLog> getAllLogsWithLevel(String eventLvl)
+    {
+        
+    }
+    
+    private boolean isError(ErrorLog err) {
+        return getLogById(err.getEventID()) != null;
+    }
+    */
+
+    @Override
+    public ErrorLog addErr(ErrorLog err) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public boolean deleteErr(ErrorLog err) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public ErrorLog updateErr(ErrorLog err) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public ErrorLog getLogById(int eventID) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Collection<ErrorLog> getAllLogsWithLevel(String eventLvl) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    
+    
+}

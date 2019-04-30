@@ -1,0 +1,167 @@
+<%-- 
+    Document   : otherWorkExperience
+    Created on : Feb 24, 2019, 2:05:23 PM
+               : Shane Panagakos (2019)
+    Author     : Jake Gordon (2019)
+--%>
+
+<%@page import="java.time.LocalDateTime"%>
+<%@page import="java.util.Collection"%>
+<%@page import="common.Application"%>
+<%@page import="mysql.WorkExpManager"%>
+<%@page import="common.WorkExp"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Other Work Experience</title>
+        <link rel ="icon" href="../images/husky.png">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+    </head>
+    <body bgcolor="#F4ECD9">
+         <% HttpSession session1 = request.getSession(true);
+            common.BuUser use = (common.BuUser) session1.getAttribute("user");
+            WorkExpManager workExpManager = new WorkExpManager();
+            Application app = (Application) request.getSession().getAttribute("currentapp");
+            
+            Collection<WorkExp> workExpCollection = null;
+            WorkExp workExp = null;
+            
+            if(app != null)
+            {
+              workExpCollection = workExpManager.getWorkExpsByApplication(app.getApplicationID());
+            }
+            if (workExpCollection != null && workExpCollection.isEmpty() == false)
+            {
+                workExp = workExpCollection.iterator().next();
+            }
+            String institution = "";
+            String title = "";
+            String workFrom = LocalDateTime.now().toString().substring(0,LocalDateTime.now().toString().indexOf("T"));
+            String workTo = LocalDateTime.now().toString().substring(0,LocalDateTime.now().toString().indexOf("T"));
+            int yearsWorked = 0;
+            String status = "Full-time";
+            
+            //Check each field for nulls individually
+            if (workExp != null)
+            {
+                if(!((institution = workExp.getInstitution()) != null))
+                {
+                    institution = "";
+                }
+                if(!((title = workExp.getTitle()) != null))
+                {
+                    title = "Enter your Title";
+                }
+                if(workExp.getExperienceDates() != null)
+                {
+                    workFrom = workExp.getExperienceDates().substring(0, workExp.getExperienceDates().indexOf("%"));
+                    workTo = workExp.getExperienceDates().substring(workExp.getExperienceDates().indexOf("%") + 1);
+                }
+                /*
+                if(workExp.getYearsWorked() != null)
+                {
+                    yearsWorked = Integer.parseInt(workExp.getYearsWorked());
+                }
+                */
+                if(workExp.isFullTime() == false)
+                {
+                    status = "Part-time";
+                }
+            }
+                    %>
+        <jsp:include page="sideTabs.jsp"/>
+        <script>
+            document.getElementsByName("dropbutton")[0].className = "dropdown-btn active";
+            document.getElementsByName("workExp")[0].className = "inDropdown active";
+            
+            //keeps the dropdown open when element is clicked
+            window.onload = function(){
+                document.getElementById("backgroundInformationDropdown").click();
+            };
+        </script>
+       <div id="teaching" class="tabcontent">
+            <div class="paper">
+              <div class="paperTop">
+                  
+                  <!--save button-->
+                  <input type="submit" value="Save"/>
+                  
+                <div class="pageTitle">Other Work Experience</div>
+                <center><div>
+                        <div class ="current_apps_subtitle">Current Application:</div> 
+                        <div class ="current_apps_displayBox">
+                            <% if (request.getSession().getAttribute("currentapp") == null) {%>
+                            No Application Selected
+                            <%} else {
+                                Application current = (Application) request.getSession().getAttribute("currentapp");
+                            %>
+                            <%=current.getFriendlyName()%>
+                            <%}%>
+                        </div>
+                        </div></center>
+                      <hr>
+              </div>
+              <div class="paperContents">
+                    <div>If you have any other work experience from an institution, please enter in the following information:</div>
+                    <p class="description">If you have any other work experience from an institution, please enter in the following information:</p>
+                    <form id="update_other_work_experience_form" action="UpdateOtherWorkExperienceServlet" method="POST">
+                    <div class="fieldLayout">Firm or Institution
+                            <input type="text" name="otherWorkLocation" class="generalTextboxStyle"value=<%=institution%>>
+                    </div>
+                    <div class="fieldLayout">Title or Job Description
+                    <input type="text" name="jobTitle" class="generalTextboxStyle"value=<%=title%>>
+                        </div>
+                     <div class="fieldLayout">From 
+                            <input type="date" name="otherJobFrom" class="generalTextboxStyle"value=<%=workFrom%>>
+                    </div>
+                    <div class="fieldLayout">To
+                            <input type="date" name="otherJobTo" class="generalTextboxStyle"value=<%=workTo%>>
+                    </div>
+                    <div class="fieldLayout">Total Number of Years
+                        <input type="number" name="otherJobYears" min="0" max="70" class="generalTextboxStyle"value=<%=yearsWorked%>>
+                    </div>
+                    <div class="fieldLayout">Status
+                        <input type="radio" name="otherJobStatus" value="Full-time" checked="checked">Full-time
+                        <input type="radio" name="otherJobStatus" value="Part-time">Part-time
+                    </div>
+              </div>
+              <div class="footerButtons">
+                        <hr>
+                        <input type="submit" name="transcripts" value="Continue"/>
+                        <input type="submit" name="print" value="Export"/>
+                        <input type="submit" name="teachFac" value="Back"/>
+                    </form>
+                
+                <form id='redirct_page' action='RedirectServlet' method='POST'>                 
+                    <!--skip button-->                    
+                    <input type="submit" name="transcripts" value="Skip"/>
+                </form>
+              </div>
+            </div>
+        </div>
+                    
+        
+        <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+                    
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }           
+        </script>
+    </body>
+</html>

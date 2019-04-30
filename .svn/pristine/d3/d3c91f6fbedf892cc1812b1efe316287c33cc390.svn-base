@@ -1,0 +1,214 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package mysql;
+
+import common.SchActivity;
+import database.SQLUtility;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.logging.Level;
+import utilities.WebErrorLogger;
+
+
+public class SchActivityManager implements database.SchActivityManager {
+
+    @Override
+    public SchActivity getSchActivity(int schActivityID) {
+        String sql = "SELECT * FROM schActivity WHERE schActivityID = ? ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        SchActivity sch;
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, schActivityID);
+
+            rs = stmt2.executeQuery();
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closePreparedStatement(stmt2);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            sch = SQLUtility.convertResultSetToSchActivity(rs);
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getSchActivity(int schActivityID) "
+                    + "schActivityID="+schActivityID + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return sch;
+    }
+
+    @Override
+    public List<SchActivity> getSchActivitysByApplication(int application) {
+        String sql = "SELECT * FROM degree WHERE application = ? ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        LinkedList<SchActivity> schs = new LinkedList<>();
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, application);
+
+            rs = stmt2.executeQuery();
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closePreparedStatement(stmt2);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            do {
+                SchActivity sch = SQLUtility.convertResultSetToSchActivity(rs);
+                schs.add(sch);
+            } while(rs.next());
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getSchActivitysByApplication(int application) "
+                    + "application="+application + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return schs;
+    }
+
+    @Override
+    public boolean insertSchActivity(SchActivity schActivity) {
+        String sql = "INSERT INTO `Tenure`.`schactivity` "
+                + "(`application`, `category`, `activityName`, `activityInfo`) "
+                + "VALUES (?, ?, ?, ?);";
+        boolean returnValue;
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, schActivity.getApplication());
+            stmt2.setString(2, schActivity.getCategory());
+            stmt2.setString(3, schActivity.getActivityName());
+            stmt2.setString(4, schActivity.getActivityInfo());
+            
+            returnValue = stmt2.executeUpdate() > 0;
+            
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in insertSchActivity(SchActivity schActivity) " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return false;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        return returnValue;
+    }
+
+    @Override
+    public SchActivity updateSchActivity(SchActivity schActivity) {
+        String sql = "UPDATE schactivity SET "
+                + "application=? category=? activityName=? activityInfo=? "
+                + "WHERE schActivityID=?;";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, schActivity.getApplication());
+            stmt2.setString(2, schActivity.getCategory());
+            stmt2.setString(3, schActivity.getActivityName());
+            stmt2.setString(4, schActivity.getActivityInfo());
+            stmt2.setInt(5, schActivity.getSchActivityID());
+            
+            stmt2.executeUpdate();
+            
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in updateSchActivity(SchActivity schActivity) " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+        return getSchActivity(schActivity.getSchActivityID());
+    }
+
+    @Override
+    public boolean deleteSchActivity(int schActivityID) {
+        String sql = "DELETE FROM schActivity WHERE schActivityID = ? ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        PreparedStatement stmt2 = null;
+        boolean returnValue;
+        try {
+            stmt2 = conn.prepareStatement(sql);
+            stmt2.setInt(1, schActivityID);
+
+            returnValue = stmt2.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in deleteSchActivity(int schActivityID) "
+                    + "schActivityID="+schActivityID + " error: " + ex);
+            Web_MYSQL_Helper.closePreparedStatement(stmt2);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return false;
+        }
+        Web_MYSQL_Helper.closePreparedStatement(stmt2);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return returnValue;
+    }
+
+    @Override
+    public List<SchActivity> getAllSchActivitys() {
+        String sql = "SELECT * FROM schactivity ; ";
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        ResultSet rs;
+        LinkedList<SchActivity> schs = new LinkedList<>();
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+
+            rs = stmt.executeQuery(sql);
+            if (rs == null || rs.next() == false) {
+                Web_MYSQL_Helper.closeStatement(stmt);
+                Web_MYSQL_Helper.returnConnection(conn);
+                return null;
+            }
+            do {
+                SchActivity sch = SQLUtility.convertResultSetToSchActivity(rs);
+                schs.add(sch);
+            } while(rs.next());
+            
+            rs.close();
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in getAllSchActivitys() "
+                    + " error: " + ex);
+            Web_MYSQL_Helper.closeStatement(stmt);
+            Web_MYSQL_Helper.returnConnection(conn);
+            return null;
+        }
+        Web_MYSQL_Helper.closeStatement(stmt);
+        Web_MYSQL_Helper.returnConnection(conn);
+
+        return schs;
+    }
+    
+}

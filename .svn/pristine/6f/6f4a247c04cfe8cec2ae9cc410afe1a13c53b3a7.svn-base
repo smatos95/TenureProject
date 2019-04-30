@@ -1,0 +1,197 @@
+package servlets;
+
+import common.Application;
+import common.BuUser;
+import common.Degree;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Iterator;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import mysql.ApplicationManager;
+import mysql.DegreeManager;
+
+/**
+ * Vision for the future: Multiple degrees in an application, then pull all of
+ * them from database and put them onto the page with multiple slots. Upon
+ * hitting save, all of them will be updated and/or inserted.
+ * 
+ * @author Riley Hughes (2019)
+ */
+@WebServlet(name = "UpdateEduCredServlet", urlPatterns = {"/UpdateEduCredServlet"})
+public class UpdateEduCredServlet extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        HttpSession sess = request.getSession(false);
+        
+        boolean appCreated = false;
+        
+        // Get BU User's details
+        BuUser user = (BuUser) sess.getAttribute("user");
+        
+        ApplicationManager appManager = new ApplicationManager();
+        DegreeManager degreeManager = new DegreeManager();
+        
+        // Get user's apps
+        Collection<Application> applications = appManager.getApplicationsByUserID(user.getUserNumber());
+        
+        // Set an application with the details the user entered. Since no data
+        // stored in an application object is set in this page, only basic info
+        // is set.
+        Application app;
+        
+        if (sess.getAttribute("currentapp") == null) {
+            app = new Application(0);
+            app.setCreationDate(LocalDateTime.now());
+        } else {
+            app = (Application) sess.getAttribute("currentapp");
+            if (app.getCreationDate() == null)
+                app.setCreationDate(LocalDateTime.now());
+        }
+        app.setApplicantUser(user.getUserNumber());
+        
+        if (((String) sess.getAttribute("apptype")).equalsIgnoreCase("Tenure"))
+            app.setApplicationType("tenure");
+        else if (((String) sess.getAttribute("apptype")).equalsIgnoreCase("Promotion"))
+            app.setApplicationType("promotion");
+        
+        Degree degree;
+        Integer credNumber = (Integer) sess.getAttribute("currentcred");
+        // check if there is a degree selected
+        if(sess.getAttribute("cred") == null && credNumber >= 0) {
+            degree = degreeManager.getDegree(credNumber);
+            if(!(degree.getApplication() == app.getApplicationID() &&
+                app.getApplicantUser() == user.getUserNumber())) {
+                degree = new Degree(0);
+            }
+        }
+        else {
+            // add new credential
+            degree = new Degree(0);
+        }
+        
+        // Set degree info
+        degree.setAttendancePeriods(request.getParameter("degreeFrom") + "%" + request.getParameter("degreeTo"));
+        degree.setCredential(request.getParameter("degree"));
+        degree.setDegreeDate(request.getParameter("degreeConferralDate"));
+        
+        String fieldOfStudy = "";
+        
+        if (request.getParameter("field").equals(""))
+            fieldOfStudy += "^";
+        else
+            fieldOfStudy += request.getParameter("field");
+        degree.setFieldOfStudy(fieldOfStudy);
+        degree.setInstitution(request.getParameter("Institution"));
+        degree.setTranscript(-1);
+        
+        // If the user has no apps, make a new one. If they have apps, then
+        // update their current one.
+        if (applications == null || applications.isEmpty()) {
+            appManager.insertApplication(app);
+            appCreated = true;
+        } else {
+            if (sess.getAttribute("currentapp") != null)
+                appManager.updateApplication(app);
+            else {
+                appManager.insertApplication(app);
+                appCreated = true;
+            }
+        }
+        
+        if (appCreated == true) {
+            Application temp1;
+            applications = appManager.getApplicationsByUserID(user.getUserNumber());
+            Iterator<Application> itann = applications.iterator();
+            
+            while (itann.hasNext()) {
+                temp1 = itann.next();
+                
+                if (itann.hasNext() == false) 
+                    sess.setAttribute("currentapp", temp1);
+            }
+        } else 
+            // Update session variable for autopopulation
+            sess.setAttribute("currentapp", app);
+        
+        // If the user created a new degree, insert it. If they are updating
+        // a current one, then do so.
+        if (degree.getDegreeID() == 0) {
+            degree.setApplication(app.getApplicationID());
+            degreeManager.insertDegree(degree);
+        } else
+            degreeManager.updateDegree(degree);
+        
+        // Send the user back to the educred page
+        if (request.getParameter("teachFac") != null)
+        {
+            request.getRequestDispatcher("jsp/teachingFaculty.jsp").forward(request, response);
+        }
+        else if(request.getParameter("print") != null)
+        {
+            request.getRequestDispatcher("/PrintEducationalCredServlet").forward(request, response);
+        }
+        else if (request.getParameter("first") != null)
+        {
+            request.getRequestDispatcher("jsp/firstpage.jsp").forward(request, response);
+        }
+        else
+        request.getRequestDispatcher("jsp/educationalCred.jsp").forward(request, response);
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+}

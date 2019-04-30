@@ -1,0 +1,152 @@
+<%-- 
+    Document   : firstpage
+    Created on : Feb 24, 2019, 2:13:03 PM
+               : Shane Panagakos(2019)
+    Author     : Jake Gordon (2019)
+--%>
+
+<%@page import="mysql.ProfileManager"%>
+<%@page import="java.time.LocalDateTime"%>
+<%@page import="common.Profile"%>
+<%@page import="common.Application"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="common.BuUser"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Tenure Prep Form</title>
+        <link rel ="icon" href="../images/husky.png">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script type="text/javascript">          
+            
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+    </head>
+    <body bgcolor="#F4ECD9">
+        <%          ProfileManager pm = new ProfileManager();
+                    common.BuUser use = (common.BuUser) request.getSession().getAttribute("user");
+                    Application a = (Application) request.getSession().getAttribute("currentapp");
+                    Profile p = pm.getProfileByUserID(use.getUserNumber());
+                    
+                    String first = use.getFirstName();
+                    String last = use.getLastName();
+                    String campusPhone = "";
+                    String dept = "";
+                    String appointment = LocalDateTime.now().toString().substring(0, LocalDateTime.now().toString().indexOf("T"));
+                    int years = 0;
+                    String chairFirst = "";
+                    String chairLast = "";
+                    String chairPhone = "";
+                    String submission = LocalDateTime.now().toString().substring(0, LocalDateTime.now().toString().indexOf("T"));
+                    
+                    // Individually check each field for null values
+                    if (a != null)
+                    {
+                        if (!((first = a.getCustomFirstName()) != null))
+                            first = use.getFirstName();
+                        if (!((last = a.getCustomLastName()) != null))
+                            last = use.getLastName();
+                        if (!((dept = a.getDepartment()) != null))
+                            dept = "";
+                        if (!((chairFirst = a.getDepartmentChair()) != null)) {
+                            chairFirst = "";
+                            chairLast = "";
+                        } else {
+                            chairLast = chairFirst.substring(a.getDepartmentChair().indexOf(" ") + 1);
+                            chairFirst = chairFirst.substring(0, a.getDepartmentChair().indexOf(" "));
+                        }
+                        if (!((chairPhone = a.getChairPhone()) != null))
+                            chairPhone = "";
+                    }
+
+                    // Individually check each field for null values
+                    if (p != null)
+                    {
+                        if (!((campusPhone = p.getCampusPhone()) != null))
+                            campusPhone = "";
+                        years = p.getYearsOfService();
+                    }
+                    %>
+     <jsp:include page="sideTabs.jsp"/>
+        <script>
+            document.getElementsByName("first")[0].className = "tabbuttons active";
+        </script>
+        
+        <div id="firstpage" class="tabcontent">
+
+            <div class="paper">
+                <div class="pageTitle">First Page</div>
+                <div class="generalHeaderFont">Personal Information</div>
+                    <form id='app_and_profile_form' action='UpdateFirstPageServlet' method='POST'>
+                    <div class="dataField">First Name
+                        <input id="firstname" type="text" name="customfirst" class="generalTextboxStyle" value=<%=first%>>
+                    </div>
+                    <div class="dataField">Last Name
+                        <input id="lastname" type="text" name="customlast" class="generalTextboxStyle" value=<%=last%>>
+                    </div>
+                    <div class="dataField">Campus Phone Number
+                        <input type="text" class="form-control generalTextboxStyle" name="campusphone" data-mask="(999)-999-9999" value=<%=campusPhone%>>
+                    </div>
+                    <div class="dataField">Name of Department
+                        <input id="departmentName" type ="text" name="deptname" class="generalTextboxStyle" value=<%=dept%>>
+                    </div>
+                    <div class="dataField">Date of Appointment
+                        <input type="date" name="appointment" class="generalTextboxStyle"value=<%=appointment%>>
+                    </div>
+                    <div class="dataField">Anticipated Years of Service 
+                        <input type="number" name="years" class="generalTextboxStyle"
+                               min="0" max="70" value=<%=years%>>
+                    </div>
+                
+                <div class="generalHeaderFont">Department Chair Information</div>
+                    <div class="dataField">First Name
+                        <input id="firstname" type="text" name="chairfirst" class="generalTextboxStyle" value=<%=chairFirst%>>
+                    </div>
+                    <div class="dataField">Last Name
+                        <input id="lastname" type="text" name="chairlast" class="generalTextboxStyle" value=<%=chairLast%>>
+                    </div>
+                    <div class="dataField">Phone Number
+                        <input type="text" class="form-control generalTextboxStyle" name="chairphone" data-mask="(999)-999-9999" value=<%=chairPhone%>>
+                    </div>
+
+                    <div class="dataField"><span style="font-weight:bold">Date of Application Submission</span>
+                        <input type="date" name="appsubmission" class="generalTextboxStyle" value=<%=submission%>></div>
+                    <h4 style="color:red;">MUST BE SUBMITTED BEFORE DECEMBER 31ST OF THE PRESENT YEAR</h4>
+                
+                    <hr>
+                    <!--Save button-->
+                    <input type="submit" name="submit" value="SAVE"/>
+
+                    </form>
+            
+                    
+                    <form id='redirct_page' action='RedirectServlet' method='POST'>
+                        <span><input type="submit" name="cover" value="back"/>
+                    <!--Next button-->
+                    <input type="submit" name="eduCred" value="NEXT"/></span>
+                </form>
+            </div>   
+                    
+
+        <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+                    
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }           
+        </script>
+    </body>
+</html>

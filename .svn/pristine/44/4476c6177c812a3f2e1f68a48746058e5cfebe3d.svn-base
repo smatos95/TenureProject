@@ -1,0 +1,184 @@
+<%-- 
+    Document   : displayApps
+    Created on : Feb 28, 2019, 3:56:06 PM
+    Author     : Shane Panagakos (2019)
+    Author     : Riley Hughes (2019)
+--%>
+
+<%@page import="java.util.Iterator"%>
+<%@page import="java.util.Collection"%>
+<%@page import="common.Application"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Your Applications</title>
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+
+        <!--
+        Inline CSS used to separate title and content from the display ass menu
+        -->
+        <style>
+            /*Styles the dropdown for app selection in displayApps*/
+            #display_app_appselect_dropdown
+            {
+                padding: 5px;
+                color: white;
+                background-color: maroon;
+                border: 1px solid black;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: calc(10px + 1vw);
+                margin-top: 12%;
+            }
+
+            /*Styles the button to create a new promotion application in displayApps*/
+            #display_app_new_promotion_button
+            {
+                padding: 10px;
+                margin-top: 25px;
+                color: white;
+                background-color: maroon;
+                border: 1px solid black;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 15px;
+            }
+            #display_app_new_promotion_button:hover
+            {
+                color:black;
+                background-color: #ffcc33;
+            }
+
+            /*Styles the button to create a new tenure application in displayApps*/
+            #display_app_new_tenure_button
+            {
+                padding: 10px;
+                margin-top: 25px;
+                color: white;
+                background-color: maroon;
+                border: 1px solid black;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 15px;
+            }
+            #display_app_new_tenure_button:hover
+            {
+                color:black;
+                background-color: #ffcc33;
+            }
+
+            /*Styles the button to submit your choice of application on the displayApps page in displayApps*/
+            #display_app_submit_choice_button
+            {
+                padding: 5px 20px;
+                margin-top: 25px;
+                color: white;
+                background-color: maroon;
+                border: 1px solid black;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 30px;
+            }
+            #display_app_submit_choice_button:hover
+            {
+                color: black;
+                background-color: #ffcc33;
+            }
+            .header_text{
+                font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+                font-size: calc(12px + 2.2vw); 
+                padding: 1%
+            }
+            .header {
+                text-align: center;
+                background: rgba(128,0,0,0.9);
+                display: block;
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+                box-shadow: 0 5px 5px rgba(0,0,0,0.15);
+                color: #fff;
+                width: auto;
+                height: auto;
+            }
+            .shadow{
+                box-shadow: 5px 10px 18px  black;
+                border-radius: 20px;
+            }
+            .display_apps_paper {
+                background: rgba(0,0,0,1);
+                box-shadow:
+                    0 5px 5px rgba(0,0,0,0.15);
+                display: block;
+                min-height: 500px;
+                height: auto;
+                width: auto; 
+                border-radius: 20px;
+                min-width: 80%;  
+                opacity: 0.9;
+            }
+            .center-display-apps-content
+            {
+                margin: auto;
+                width: 50%;
+                min-width:360px;
+                margin-top: 13%;
+            }
+            body {
+                background-image: url("images/carver1.jpg");
+                background-repeat: no-repeat;
+                background-size: cover;
+                background-position: center;
+            }
+        </style>
+    </head>
+    <body>   
+        <div id="display_apps" class="center-display-apps-content">
+            <div class ="shadow">
+                <div class="display_apps_paper" style="background-color: #e3dfdf">
+                    <div class ="header">
+                        <center>   
+                            <div class="header_text"><b>Select or Create an Application</b></div>        
+                        </center>
+                    </div>
+
+                    <center>
+                        <%
+                            // Get the user's apps (obtained in the GetApplicationsServlet)
+                            Collection<Application> apps = (Collection<Application>) request.getSession().getAttribute("apps");
+
+                            // If the user has apps,
+                            if (!(apps == null || apps.isEmpty())) {
+                        %>
+
+                        <form id='app_selector_form' action='SetApplicationServlet' method='POST'>
+                            <select id="display_app_appselect_dropdown" name='appselect'>
+                                <%
+                                    // Go through the apps and add them as options to select from
+                                    Iterator<Application> ia = apps.iterator();
+                                    Application temp;
+                                    while (ia.hasNext()) {
+                                        temp = ia.next();
+                                %>
+                                <option value=<%=temp.getApplicationID()%>>
+                                    <%=temp.getApplicationType() + " application created on " + temp.getCreationDate().toString().substring(0, 10)%>
+                                </option>
+                                <%}%>
+                            </select>
+                            <input type='submit' name='submitchoice' id="display_app_submit_choice_button" value='Select' />
+                        </form>
+                        <%} else {%>
+                        <h3>You have no applications.</h3>
+                        <%}
+                        %>
+                        <form id="send_to_home_form" action="CreateApplicationServlet" method="POST">
+                            <input type="submit" id="display_app_new_tenure_button" value="Create New Tenure Application" name="tenure">
+                            <input type="submit" id="display_app_new_promotion_button" value="Create New Promotion Application" name="promotion">
+                        </form>
+                    </center>    
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

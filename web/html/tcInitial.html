@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!--
+Initial page of the Tenure Prep Form web app for Tenure Committee Members. 
+Riley Hughes principle designer
+-->
+<html>
+    <head>
+        <title>Tenure Prep Form</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../styles/initialPage.css" type="text/css"/>
+        <script type="text/javascript">
+            function openTab(e, tabName) {
+                var i, tabcontent, tabbuttons;
+                
+                // Get elements with tabcontent class and hide them
+                tabcontent = document.getElementsByClassName("tabcontent");
+                for (i = 0; i < tabcontent.length; i++) {
+                    tabcontent[i].style.display = "none";
+                }
+                
+                // Get elements w/ tabbuttons class and remove active class
+                tabbuttons = document.getElementsByClassName("tabbuttons");
+                for (i = 0; i < tabbuttons.length; i++) {
+                    tabbuttons[i].className = tabbuttons[i].className.replace(" active", "");
+                }
+                
+                // Show current tab, add active class to its button
+                document.getElementById(tabName).style.display = "block";
+                e.currentTarget.className += " active";
+            }
+        </script>
+    </head>
+    <body bgcolor="#F4ECD9">
+        <div class="sidetabs">
+            <button class="tabbuttons" onclick="openTab(event, 'startup')" id="hometab">Home</button>
+            <button class="tabbuttons" onclick="openTab(event, 'tc1')">TC Function 1</button>
+            <button class="tabbuttons" onclick="openTab(event, 'tc2')">TC Function 2</button>
+        </div>
+        
+        <div id="startup" class="tabcontent">
+            <h3>Tenure Prep Form Tenure Committee Home</h3>
+        </div>
+        
+        <div id="tc1" class="tabcontent">
+            <h3>TC Functionality 1</h3>
+        </div>
+        
+        <div id="tc2" class="tabcontent">
+            <h3>TC Functionality 2</h3>
+        </div>
+        
+        <script type="text/javascript">
+            // Get elements with tabcontent class and hide them
+            var tabContOuter, j;
+            
+            tabContOuter = document.getElementsByClassName("tabcontent");
+            for (j = 0; j < tabContOuter.length; j++) {
+                tabContOuter[j].style.display = "none";
+            }
+            
+            // Display home tab
+            document.getElementById("hometab").click();
+        </script>
+    </body>
+</html>

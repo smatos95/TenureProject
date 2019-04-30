@@ -1,0 +1,104 @@
+<%-- 
+    Document   : home
+    Created on : Feb 24, 2019, 4:49:59 PM
+    Author     : Jake Gordon (2019)
+--%>
+
+<%@page import="common.User"%>
+<%@page import="common.BuUser"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="java.util.Collection"%>
+<%@page import="java.util.Iterator"%>
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Tenure Prep Form</title>
+        <link rel ="icon" href="../images/husky.png">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <title>JSP Page</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+
+    </head>
+
+    <body bgcolor="#F4ECD9">
+        <% HttpSession session1 = request.getSession(true);
+            common.BuUser use = (common.BuUser) session1.getAttribute("user");
+        %>
+        <jsp:include page="sideTabs.jsp"/>
+        <script>
+            document.getElementsByName("home")[0].className = "tabbuttons active";
+        </script>
+
+        <div class ="tabcontent">
+            <div class ="paper">
+                <div>
+                    
+                        <!-- Table of contents code-->    
+                        <div id="toc_container">
+                            <p class="toc_title pageTitle" >Overview</p>
+                        <form id='redirct_page' action='RedirectServlet' method='POST'>
+                            <input type="submit" class="linkButton" name = "cover" value="Cover Page"/><br/>
+                            <input type="submit" class="linkButton" name = "first" value="First Page"/><br/>
+                            <hr> <!-- add a visible horizontal line break -->
+                            <p class="generalHeaderFont">Background Information</p>
+                            <input type="submit" class="linkButton" name = "eduCred" value="Educational Credentials"/><br/>
+                            <input type="submit" class="linkButton" name = "teachFac" value="Teaching/Faculty"/><br/>
+                            <input type="submit" class="linkButton" name = "workExp" value="Other Work Experience"/><br/>
+                            <input type="submit" class="linkButton" name = "transcripts" value="Official Transcripts"/><br/>
+                            <hr>
+                             <p class="generalHeaderFont">Teaching and Fulfillment</p>
+                            <input type="submit" class="linkButton" name = "teachingNarrative" value="Professional Responsibilities"/><br/>
+                            <input type="submit" class="linkButton" name = "teachingHistory" value="BU Teaching History"/><br/>
+                            <input type="submit" class="linkButton" name = "studentEvaluations" value="Summary Tables of Student Evaluations"/><br/>
+                            <input type="submit" class="linkButton" name = "fulfillmentProfessional" value="Fulfillment of Professional Responsibilities"/><br/>
+                            <input type="submit" class="linkButton" name = "timeActivities" value="Assigned Time Activities"/><br/>
+                            <input type="submit" class="linkButton" name = "Innovations" value="Teaching Related Innovations"/><br/> 
+                            <hr>
+                            <p class="generalHeaderFont">Scholarly Growth</p>
+                            <input type="submit" class="linkButton" name = "scholar" value="Narrative on Continuing Scholarly Growth"/><br/>
+                            <input type="submit" class="linkButton" name = "Activities" value="Activities"/><br/>           
+                            <hr>
+                             <p class="generalHeaderFont">University/Community</p>
+                            <input type="submit" class="linkButton" name = "uniCommNarrative" value="Narrative on Contributions to University and Community"/><br/>
+                            <input type="submit" class="linkButton" name = "committeeService" value="Committee Service"/><br/>
+                            <input type="submit" class="linkButton" name = "studentOrgAdvisement" value="Advisement to Student Organizations"/><br/>
+                            <input type="submit" class="linkButton" name = "otherContributions" value="Other Contributions to the University"/><br/>
+                            <input type="submit" class="linkButton" name = "communityContributions" value="Community Contributions"/><br/>
+                            <hr>
+                            <p class="generalHeaderFont">Signature Pages</p>
+                            <input type="submit" class="linkButton" name = "tenureSigPage" value="Tenure Application Signature Page"/><br/>
+                            <input type="submit" class="linkButton" name = "deptNarrativeSigPage" value="Department Committee Narrative and Signature Page"/><br/>
+                            <input type="submit" class="linkButton" name = "chairNarrativeSigPage" value="Chairperson Narrative and Signature Page"/><br/>
+                            <input type="submit" class="linkButton" name = "specialNote" value="Special Note"/><br/>
+                        </form>
+                        </div>
+                    
+                </div>
+            </div>
+        </div>
+
+        -->       
+        <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,347 @@
+package database;
+
+import common.Application;
+import common.BuUser;
+import common.Degree;
+import common.Media;
+import common.Narrative;
+import common.Profile;
+import common.User;
+import common.UserRole;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import utilities.WebErrorLogger;
+import common.ErrorLog;
+import common.Grades;
+import common.LocalExp;
+import common.SchActivity;
+import common.SvcActivity;
+import common.TeachingExp;
+import common.WorkExp;
+import java.time.LocalDateTime;
+
+/**
+ * A utility class designed to convert result set entries to  
+ * Java objects. 
+ * 
+ * @author Curt Jones (2018)
+ * @author Gryphon Ayers (2019)
+ */
+public class SQLUtility {
+
+    public static User convertResultSetToUser(ResultSet rs) {
+        User user = new User();
+        try {
+            user.setUserNumber(rs.getInt("userNumber"));
+            user.setUserPassword(rs.getString("userPassword"));
+            user.setLoginName(rs.getString("loginName"));
+            user.setEmailAddress(rs.getString("emailAddress"));
+            user.setFirstName(rs.getString("firstName"));
+            user.setLastName(rs.getString("lastName"));
+            user.setUserRole(UserRole.getUserRole(rs.getString("userRole")));
+            LocalDateTime now = LocalDateTime.parse(rs.getString("lastLoginTime"));
+            user.setLastLoginTime(now);
+            if (rs.getString("LastAttemptedLoginTime") == null) {
+                user.setLastAttemptedLoginTime(LocalDateTime.now());
+            } else {
+                user.setLastAttemptedLoginTime(LocalDateTime.parse(rs.getString("LastAttemptedLoginTime")));
+            }
+            int loginCount = rs.getInt("loginCount");
+            user.setLoginCount(loginCount);
+            user.setAttemptedLoginCount(rs.getInt("attemptedLoginCount"));
+            user.setLocked(rs.getBoolean("locked"));
+            user.setSalt(rs.getString("salt"));
+            user.setBuUser(false);
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in convertResultSetToUser()" + ex, ex);
+            return null;
+        }
+        return user;
+    }
+    
+    public static DatabaseProperty convertResultSetToDatabaseProperty(ResultSet rs) {
+        DatabaseProperty property = new DatabaseProperty();
+        try {
+            property.setPropertyNumber(rs.getInt("propertyNumber"));
+            property.setPropertyName(rs.getString("propertyName"));
+            property.setPropertyValue(rs.getString("propertyValue"));
+            property.setDescription(rs.getString("description"));
+            property.setPreviousValue(rs.getString("previousValue"));
+            property.setDefaultValue(rs.getString("defaultValue"));
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in convertResultSetToDatabaseProperty. " + ex, ex);
+            return null;
+        }
+        return property;
+    }
+
+    public static BuUser convertResultSetToBuUser(ResultSet rs) {
+        BuUser user = new User();
+        try {
+            user.setUserNumber(rs.getInt("userNumber"));
+            user.setLoginName(rs.getString("loginName"));
+            user.setEmailAddress(rs.getString("emailAddress"));
+            user.setFirstName(rs.getString("firstName"));
+            user.setLastName(rs.getString("lastName"));
+            user.setDisplayName(rs.getString("displayName"));
+            user.setUserRole(UserRole.getUserRole(rs.getString("userRole")));
+            LocalDateTime now = LocalDateTime.parse(rs.getString("lastLoginTime"));
+            user.setLastLoginTime(now);
+            int loginCount = rs.getInt("loginCount");
+            user.setLoginCount(loginCount);
+            user.setBuUser(true);
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in BuUser convertResultSetToBuUser(ResultSet rs)" + ex, ex);
+            return null;
+        }
+        return user;
+    }
+
+    public static Application convertResultSetToApplication(ResultSet rs) {
+        Application app;
+        try {
+            app = new Application(rs.getInt("applicationID"));
+            app.setApplicantUser(rs.getInt("applicantUser"));
+            app.setApplicationType(rs.getString("applicationType"));
+            LocalDateTime d = LocalDateTime.parse(rs.getString("creationDate").replaceAll("\\s+", "T"));
+            app.setCreationDate(d);
+            String submissionDate = rs.getString("submissionDate");
+            if (submissionDate != null) {
+                app.setSubmissionDate(LocalDateTime.parse(submissionDate));
+            }
+            else {
+                app.setSubmissionDate(null);
+            }
+            app.setDepartment(rs.getString("department"));
+            app.setDepartmentChair(rs.getString("departmentChair"));
+            app.setChairPhone(rs.getString("chairPhone"));
+            app.setCustomFirstName(rs.getString("customFirstName"));
+            app.setCustomLastName(rs.getString("customLastName"));
+            
+            
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in Application convertResultSetToApplication(ResultSet rs)" + ex, ex);
+            return null;
+        }
+        return app;
+    }
+
+    
+    public static Profile convertResultSetToProfile(ResultSet rs) {
+        Profile pro;
+        try {
+            pro = new Profile(rs.getInt("profileID"));
+            pro.setProfileUser(rs.getInt("profileUser"));
+            pro.setCampusPhone(rs.getString("campusPhone"));
+            pro.setRank(rs.getString("rank"));
+            pro.setYearsOfService(rs.getInt("yearsOfService"));
+            String appointmentDate = rs.getString("appointmentDate");
+            if (appointmentDate != null) {
+                pro.setAppointmentDate(LocalDateTime.parse(appointmentDate));
+            }
+            else {
+                pro.setAppointmentDate(null);
+            }
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in Profile convertResultSetToProfile(ResultSet rs)" + ex, ex);
+            return null;
+        }
+        return pro;
+    }
+    
+    public static Narrative convertResultSetToNarrative(ResultSet rs) {
+        Narrative nar;
+        try {
+            nar = new Narrative(rs.getInt("narrativeID"));
+            nar.setApplication(rs.getInt("application"));
+            nar.setNarrativeMedia(rs.getInt("narrativeMedia"));
+            nar.setNarrativeText(rs.getString("narrativeText"));
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in Nerrative convertResultSetToNarrative(ResultSet rs)" + ex, ex);
+            return null;
+        }
+        return nar;
+    }
+    
+    public static Media convertResultSetToMedia(ResultSet rs) {
+        Media med;
+        try {
+            med = new Media(rs.getInt("mediaID"));
+            med.setMediaFile(rs.getBytes("mediaFile"));
+            med.setMediaFilename(rs.getString("mediaFilename"));
+            med.setCreationDate(LocalDateTime.parse(rs.getString("creationDate")));
+            med.setMediaHash(rs.getString("mediaHash"));
+            
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in Media convertResultSetToMedia(ResultSet rs)" + ex, ex);
+            return null;
+        }
+        return med;
+    }
+    
+    public static Media convertResultSetToMediaUnhydrated(ResultSet rs) {
+        Media med;
+        try {
+            med = new Media(rs.getInt("mediaID"));
+            med.setMediaFile(null);
+            med.setMediaFilename(rs.getString("mediaFilename"));
+            med.setCreationDate(LocalDateTime.parse(rs.getString("creationDate")));
+            med.setMediaHash(rs.getString("mediaHash"));
+            
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in Media convertResultSetToMediaUnhydrated(ResultSet rs)" + ex, ex);
+            return null;
+        }
+        return med;
+    }
+    
+    public static Grades convertResultSetToGrades(ResultSet rs) {
+        Grades grade;
+        try {
+            grade = new Grades(rs.getInt("gradesID"), rs.getInt("application"));
+            
+            int[] gradeData = new int[Grades.GRADE_DATA_COLUMN_COUNT];
+            for(int i = 0; i < Grades.GRADE_DATA_COLUMN_COUNT; i++) {
+                gradeData[i] = rs.getInt(i+Grades.GRADE_DATA_COLUMN_OFFSET);
+            }
+            grade.setGradeData(gradeData);
+            
+            grade.setCourse(rs.getInt("course"));
+            grade.setSection(rs.getString("section"));
+            grade.setYear(rs.getShort("year"));
+            grade.setInstructor(rs.getInt("instructor"));
+            
+            return grade;
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in Grades convertResultSetToGrades(ResultSet rs)" + ex, ex);
+            return null;
+        }
+    }
+    
+    public static Degree convertResultSetToDegree(ResultSet rs) {
+        Degree deg;
+        try {
+            deg = new Degree(rs.getInt("degreeID"));
+            
+            deg.setApplication(rs.getInt("application"));
+            deg.setInstitution(rs.getString("institution"));
+            deg.setCredential(rs.getString("credential"));
+            deg.setFieldOfStudy(rs.getString("fieldOfStudy"));
+            deg.setAttendancePeriods(rs.getString("attendancePeriods"));
+            deg.setTranscript(rs.getInt("transcript"));
+            
+            return deg;
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in Degree convertResultSetToDegree(ResultSet rs)" + ex, ex);
+            return null;
+        }
+    }
+    
+    public static LocalExp convertResultSetToLocalExp(ResultSet rs) {
+        LocalExp loc;
+        try {
+            loc = new LocalExp(rs.getInt("localExpID"));
+            
+            loc.setApplication(rs.getInt("application"));
+            loc.setCourseName(rs.getString("courseName"));
+            loc.setLastSemesterTaught(rs.getString("lastSemesterTaught"));
+            loc.setMiscInfo(rs.getString("miscInfo"));
+            
+            return loc;
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in LocalExp convertResultSetToLocalExp(ResultSet rs)" + ex, ex);
+            return null;
+        }
+    }
+    
+    public static SchActivity convertResultSetToSchActivity(ResultSet rs) {
+        SchActivity sch;
+        try {
+            sch = new SchActivity(rs.getInt("schActivityID"));
+            
+            sch.setApplication(rs.getInt("application"));
+            sch.setActivityName("activityName");
+            sch.setActivityInfo("activityInfo");
+            sch.setCategory("category");
+            
+            return sch;
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in SchActivity convertResultSetToSchActivity(ResultSet rs)" + ex, ex);
+            return null;
+        }
+    }
+    
+    public static SvcActivity convertResultSetToSvcActivity(ResultSet rs) {
+        SvcActivity svc;
+        try {
+            svc = new SvcActivity(rs.getInt("svcActivityID"));
+            
+            svc.setApplication(rs.getInt("application"));
+            svc.setType(rs.getString("type"));
+            svc.setSupportDocument(rs.getInt("supportDocument"));
+            
+            return svc;
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in SvcActivity convertResultSetToSvcActivity(ResultSet rs)" + ex, ex);
+            return null;
+        }
+    }
+    
+    public static TeachingExp convertResultSetToTeachingExp(ResultSet rs) {
+        TeachingExp exp;
+        try {
+            exp = new TeachingExp(rs.getInt("teachingID"));
+            
+            exp.setApplication(rs.getInt("application"));
+            exp.setInstitution(rs.getString("institution"));
+            exp.setRank(rs.getString("rank"));
+            exp.setTeachingDates(rs.getString("teachingDates"));
+            exp.setYearsOfService(rs.getString("yearsOfService"));
+            exp.setIsFullTime(rs.getBoolean("isFullTime"));
+            
+            return exp;
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in TeachingExp convertResultSetToTeachingExp(ResultSet rs)" + ex, ex);
+            return null;
+        }
+    }
+    
+    public static ErrorLog convertResultSetToErrorLogs(ResultSet rs) {
+        ErrorLog err = new ErrorLog();
+        try {
+            err.setEventID(rs.getInt("EVENT_ID"));
+            LocalDateTime now = LocalDateTime.parse(rs.getString("EVENT_DATE").replaceAll("\\s+", "T"));
+            err.setEventDate(now);
+            err.setLevel(rs.getString("LEVEL"));
+            err.setLogger(rs.getString("LOGGER"));
+            err.setMessage(rs.getString("MSG"));
+            
+
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in convertResultSetToErrorLogs()" + ex, ex);
+            return null;
+        }
+        return err;
+    }
+    
+    public static WorkExp convertResultSetToWorkExp(ResultSet rs) {
+        WorkExp wrk;
+        try {
+            wrk = new WorkExp(rs.getInt("workID"));
+            
+            wrk.setApplication(rs.getInt("application"));
+            wrk.setInstitution(rs.getString("institution"));
+            wrk.setTitle(rs.getString("title"));
+            wrk.setIsFullTime(rs.getBoolean("isFullTime"));
+            wrk.setExperienceDates(rs.getString("experienceDates"));
+            
+            return wrk;
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in WorkExp convertResultSetToWorkExp(ResultSet rs)" + ex, ex);
+            return null;
+        }
+    }
+}

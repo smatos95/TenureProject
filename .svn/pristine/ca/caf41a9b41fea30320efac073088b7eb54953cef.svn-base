@@ -1,0 +1,288 @@
+<%-- 
+    Document   : teachingFaculty
+    Created on : Feb 24, 2019, 2:05:23 PM
+               : Shane Panagakos (2019)
+    Author     : Jake Gordon (2019)
+--%>
+
+<%@page import="java.util.Iterator"%>
+<%@page import="java.util.List"%>
+<%@page import="common.BuUser"%>
+<%@page import="java.time.LocalDateTime"%>
+<%@page import="common.TeachingExp"%>
+<%@page import="java.util.Collection"%>
+<%@page import="mysql.TeachingExpManager"%>
+<%@page import="common.Application"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Teaching and Faculty</title>
+        <link rel ="icon" href="../images/husky.png">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+    </head>
+    <body bgcolor="#F4ECD9">
+        <%  HttpSession sess = request.getSession(false);
+            final Object lock = sess.getId().intern();
+            TeachingExpManager tem = new TeachingExpManager();
+            Application app;
+            Integer currentexp;
+            BuUser user;
+            int i = 0;
+            synchronized (lock) {
+                app = (Application) sess.getAttribute("currentapp");
+                currentexp = (Integer) sess.getAttribute("currentexp");
+                user = (BuUser) sess.getAttribute("user");
+            }
+
+            List<TeachingExp> tec = null;
+            boolean tecExist = false;
+            TeachingExp e = null;
+            if (app != null) {
+                tec = tem.getTeachingExpsByApplication(app.getApplicationID());
+            }
+            tecExist = (tec != null && tec.size() > 0);
+
+            // set default field values
+            String institution = "";
+            String rank = "Select Your Rank";
+            String teachFrom = LocalDateTime.now().toString().substring(0, LocalDateTime.now().toString().indexOf("T"));
+            String teachTo = LocalDateTime.now().toString().substring(0, LocalDateTime.now().toString().indexOf("T"));
+            int yearsTaught = 0;
+            String status = "Full-time";
+
+            // get the record that corresponds to currentexp
+            if (tecExist && currentexp != null) {
+                for (TeachingExp exp : tec) {
+                    if (exp.getTeachingID() == currentexp) {
+                        e = exp;
+                        break;
+                    }
+                }
+            } else {
+                synchronized (lock) { // no degrees for application or currentcred not set
+                    sess.setAttribute("currentexp", new Integer(-1));
+                }
+            }
+
+            // Check each field for nulls individually
+            if (e != null) {
+                if (e.getInstitution() != null) {
+                    institution = e.getInstitution();
+                }
+                if (e.getRank() != null) {
+                    rank = e.getRank();
+                }
+                if (e.getTeachingDates() != null) {
+                    teachFrom = e.getTeachingDates().substring(0, e.getTeachingDates().indexOf("%"));
+                    teachTo = e.getTeachingDates().substring(e.getTeachingDates().indexOf("%") + 1);
+                }
+                if (e.getYearsOfService() != null) {
+                    yearsTaught = Integer.parseInt(e.getYearsOfService());
+                }
+                if (e.isFullTime() == false) {
+                    status = "Part-time";
+                }
+            }
+        %>
+        <jsp:include page="sideTabs.jsp"/>
+        <script>
+            document.getElementsByName("dropbutton")[0].className = "dropdown-btn active";
+            document.getElementsByName("teachFac")[0].className = "inDropdown active";
+
+            //keeps the dropdown open when element is clicked
+            window.onload = function () {
+                document.getElementById("backgroundInformationDropdown").click();
+            };
+        </script>
+        <div id="teaching" class="tabcontent">
+            <div class="paper">
+                <div class="paperTop">
+
+                    <!--save button-->
+                    <input type="submit" onclick="clickSave()" value="Save"/>
+
+                    <div class="pageTitle">Teaching & Faculty Background</div>
+
+                    <center><div>
+                            <div class ="current_apps_subtitle">Current Application:</div> 
+                            <div class ="current_apps_displayBox">
+                                <% if (app == null) {%>
+                                No Application Selected
+                                <%} else {
+                                %>
+                                <%=app.getFriendlyName()%>
+                                <%}%>
+                            </div>
+                        </div></center>
+                    <hr>
+                </div>
+                <div class="paperContents">
+                    <form id="degree_table" method="POST">
+                        <%if (tecExist) {%>
+                        <table id ="insertTables">
+                            <%
+                                out.print("<caption class = \"tableHeaderTitle\">Submitted Records</caption>");
+                                // get the iterator for the degrees and print labels
+                                Iterator<TeachingExp> tecItr = tec.iterator();
+                                TeachingExp tex = tecItr.next();
+                                out.print("<tr>");
+                                tex.printSummaryLabels(out);
+                                out.println("</tr>");
+
+                                // print the first line
+                                out.print("<tr>");
+                                tex.printSummaryRow(out);
+                                out.println("<td><button class =\"action_button\" type=\"submit\" formaction=\"TeachFacAutofillServlet\" name=\"exp\" value=\"" + tex.getTeachingID() + "\">Edit</button> <button class =\"action_button\" type=\"submit\" id=\"teach_fac_delete_button\" formaction=\"UpdateTeachingFacultyServlet\" onClick=\"deleteTeachFac()\" value=\"" + tex.getTeachingID() + "\">Delete</button></td>");
+
+                                out.println("</tr>");
+                                // print the rest of the lines
+                                while (tecItr.hasNext()) {
+                                    String idName = Integer.toString(i) + "_teach_fac_delete_button";
+                                    tex = tecItr.next();
+                                    out.print("<tr>");
+                                    tex.printSummaryRow(out);
+                                    out.println("<td><button class =\"action_button\" type=\"submit\" formaction=\"TeachFacAutofillServlet\" name=\"exp\" value=\"" + tex.getTeachingID() + "\">Edit</button> <button  class =\"action_button\" type=\"submit\" id=\"" + idName + "\" formaction=\"UpdateTeachingFacultyServlet\" onClick=\"whileDeleteTeachFac(" + i + ")\" value=\"" + tex.getTeachingID() + "\">Delete</button></td>");
+                                    out.println("</tr>");
+                                    i++;
+                                }
+                                out.println("</table>");%>
+                            <%} else {%>No records have been added.<%}%>
+                    </form>
+                    <button onclick="openModal()" class ="action_button"> Add Credentials </button>
+
+                    <div id ="myModal" class ="modal">
+                        <div class ="modal-content">
+                            <span class ="close">&times;</span>
+                            <p class="description">List the following information for the Institution(s) you have taught at:</p>
+
+                            <form id="update_teaching_faculty_form" action="UpdateTeachingFacultyServlet" method="POST">
+                                <div class="fieldLayout">Institution taught at
+                                    <input type="text" name="teachingInstitution" class="generalTextboxStyle" value="<%=institution%>" placeholder="Ex: University of Bloomsburg">
+                                </div>
+                                <div class="fieldLayout">Rank
+                                    <select name="teachingRank" class="generalTextboxStyle">
+                                        <option value="Select a Rank" <%if (rank.equals("Select a Rank")) {%> selected="selected"<%}%>>Select a Rank</option>
+                                        <option value="Instructor" <%if (rank.equals("Instructor")) {%> selected="selected"<%}%>>Instructor</option>
+                                        <option value="Assistant Professor" <%if (rank.equals("Assistant Professor")) {%> selected="selected"<%}%>>Assistant Professor</option>
+                                        <option value="Associate Professor" <%if (rank.equals("Associate Professor")) {%> selected="selected"<%}%>>Associate Professor</option>
+                                    </select>
+                                </div>
+                                <div class="fieldLayout">From 
+                                    <input type="date" name="teachingFrom" class="generalTextboxStyle" value="<%=teachFrom%>">
+                                </div>
+                                <div class="fieldLayout">To
+                                    <input type="date" name="teachingTo" class="generalTextboxStyle"value="<%=teachTo%>">
+                                </div>
+                                <div class="fieldLayout">Total Number of Years
+                                    <input type="number" name="teachingYears" min="0" max="70" class="generalTextboxStyle"value="<%=yearsTaught%>">
+                                </div>
+                                <div class="fieldLayout">Status
+                                    <input type="radio" name="teachingStatus" value="Full-time" <%if (status.equals("Full-time")) {%>checked="checked"<%}%>/>Full-time
+                                    <input type="radio" name="teachingStatus" value="Part-time" <%if (status.equals("Part-time")) {%>checked="checked"<%}%>/>Part-time
+                                </div>
+                                <input type="submit" name="insert" class="action_button" value="Save Credential"/>
+                                <!--save button-->
+                                <input type="submit" class ="action_button" onclick="clickSave()" value="Update Existing"/>
+                            </form>
+                        </div>
+                                </div>
+
+                        <form id="update_teaching_faculty_form" action="UpdateTeachingFacultyServlet" method="POST">
+                        <div class="footerButtons">                       
+                            <input type="submit" hidden="hidden" id="save_hidden_button">
+                            <hr>
+                            <input type="submit" name="workExp" value="Continue"/>
+                            <input type="submit" formaction="PrintTeachingFacultyServlet" name="print" value="Export"/>
+                            <input type="submit" name="eduCred" value="Back"/>
+                            
+                        </form>
+                                
+                            <form id='redirct_page' action='RedirectServlet' method='POST'>
+                                <!--skip button-->            
+                                <input type="submit" name="workExp" value="Skip"/>
+                            </form>
+                        </div>
+                    
+                </div>  
+
+                <script>
+                    var dropdown = document.getElementsByClassName("dropdown-btn");
+                    var i;
+
+                    for (i = 0; i < dropdown.length; i++) {
+                        dropdown[i].addEventListener("click", function () {
+
+                            var dropdownContent = this.nextElementSibling;
+                            if (dropdownContent.style.display === "block") {
+                                dropdownContent.style.display = "none";
+                            } else {
+                                dropdownContent.style.display = "block";
+                            }
+                        });
+                    }
+                </script>
+                <script>
+                    // This function allows the visible button 'saved' to be clicked through a hidden button
+                    function clickSave()
+                    {
+                        document.getElementById("save_hidden_button").click();
+                    }
+                </script>
+                <script>
+                    function deleteTeachFac()
+                    {
+                        var deleteButton = confirm("Are you sure you want to delete this teaching experience?");
+                        var deleteName = document.getElementById("teach_fac_delete_button");
+                        if (deleteButton == true)
+                        {
+                            deleteName.name = "deleteExp";
+                        } else
+                        {
+                            deleteName.name = "cancel";
+                        }
+                    }
+                    function whileDeleteTeachFac(i)
+                    {
+                        var deleteButton = confirm("Are you sure you want to delete this teaching experience?");
+                        var idName = i + "_teach_fac_delete_button";
+                        var deleteName2 = document.getElementById(idName);
+                        if (deleteButton == true)
+                        {
+                            deleteName2.name = "deleteExp";
+                        } else
+                        {
+                            deleteName2.name = "cancel";
+                        }
+                    }
+                </script>
+                <script>
+                    // Get the modal
+                    var modal = document.getElementById('myModal');
+                    // Get the <span> element that closes the modal
+                    var span = document.getElementsByClassName("close")[0];
+                    function openModal()
+                    {
+                        // Declare var thats going to be used to open modal
+                        var open;
+                        // When the user clicks the button, open the modal 
+                        open.onclick = modal.style.display = "block";
+                    }
+                    // When the user clicks on <span> (x), close the modal
+                    span.onclick = function () {
+                        modal.style.display = "none";
+                    }
+                    // When the user clicks anywhere outside of the modal, close it
+                    window.onclick = function (event) {
+                        if (event.target == modal) {
+                            modal.style.display = "none";
+                        }
+                    }
+                </script>
+                </body>
+                </html>

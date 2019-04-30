@@ -1,0 +1,722 @@
+/* 
+    Created on : Feb 14, 2019, 4:12:43 PM
+    Author     : Shane Panagakos (2019)
+    Author     : Riley Hughes (2019)
+    Author     : Steven Matos (2019)
+*/
+
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+/* Tab menu */
+.sidetabs {
+    float: left;
+    border: 0px solid #ccc;
+    background-color: maroon;
+    width: 310px;
+    height: 100%;
+    position: fixed;
+    z-index: 1; /* Stay on top */
+    top: 0; /* Stay at the top */
+    left: 0;
+    padding-top:0%;
+    overflow-x:hidden;
+
+}
+
+/* Grays out the disabled buttons*/
+.disabledButtonsContainer
+{
+    background-color: #484848;
+    display: block;
+    color: #A9A9A9;
+    padding: 20px 16px;
+    width: 100%;
+    border: none;
+    outline: none;
+    text-align: left;
+    cursor: not-allowed;
+    transition: 0.3s;
+    font-size: 16px;
+    position: static;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif; 
+}
+
+/* Tabs */
+.tabbuttons, .dropdown-btn, .inDropdown{
+    display: block;
+    background-color: inherit;
+    color: white;
+    padding: 15px 16px;
+    width: 100%;
+    border: none;
+    outline: none;
+    text-align: left;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 16px;
+    position: static;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif; 
+}
+
+/* Styles the button to submit transcript files*/
+#transcript-submit-button
+{
+    padding: 10px;
+    margin-top: 25px;
+    color: white;
+    background-color: maroon;
+    border: 1px solid black;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 20px;
+}
+#transcript-submit-button:hover
+{
+    color: black;
+    background-color: #ffcc33;
+}
+
+/* Style the button to upload transcript files*/
+#transcript-upload-button
+{
+    padding: 10px;
+    margin-top: 25px;
+    color: white;
+    background-color: maroon;
+    border: 1px solid black;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 20px;
+}
+#transcript-upload-button:hover
+{
+    color: black;
+    background-color: #ffcc33;
+}
+/*the text that shows the selected files*/
+#transcript-file-text
+{
+    margin-left: 10px;
+    font-family: Arial, Helvetica, sans-serif;
+    color: gray;
+}
+.inDropdown
+{
+    text-align: right;
+    font-size: 15px;
+    font-family: Arial, Helvetica, sans-serif;
+    display:block;
+
+}
+.dropdown-container {
+    display: none;
+    background-color: #650007;
+    padding-left: 0px;
+}
+
+.dropdown-container.active{
+    display: block;
+}
+
+/* Optional: Style the caret down icon */
+.fa-caret-down {
+    float: right;
+    padding-right: 8px;
+}
+
+.tabbuttons:hover, .dropdown-btn:hover, .inDropdown:hover{
+    background-color: #cccccc;
+}
+
+.tabbuttons.active, .inDropdown.active, .dropdown-btn.active {
+    background-color: #ffdf7f;
+    color: black;
+}
+/*
+body{
+    overflow:hidden;
+}
+*/
+
+/* Smaller screens, height <450px, less padding smaller font size on
+sidebar */
+@media screen and (max-height: 450px) {
+    .sidetabs {padding-top: 15px;}
+    .sidetabs a {font-size: 18px;}
+}
+
+.popupPaper{
+    background: #F4ECD9;
+    box-shadow: 0 5px 5px rgba(0,0,0,0.15);
+    border-radius: 20px;
+    margin: auto;
+    padding: 1%;
+    display: none;
+    position:fixed;
+    z-index: 9;
+    width: 500px;
+    height: 500px;
+}
+
+.paper {
+    background:#ffffff;
+    box-shadow: 0 5px 5px rgba(0,0,0,0.15);
+    display: block;
+    border-radius: 20px;
+    position:absolute;
+    left:calc(310px + 5%);
+    right:5%;
+    top:5%;
+    bottom:5%;
+    height:auto;
+    padding: 1%;
+    overflow: auto;
+}
+
+.paperTop {
+    background: white;
+    position: fixed;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    left:calc(310px + 5%);
+    right:5%;
+    top:5%;
+    padding:0 2% 0 2%;
+    z-index: 2;
+}
+
+.paperContents {
+    background: white;
+    position:fixed;
+    left:calc(310px + 5%);
+    right:5%;
+    top:15%;
+    bottom:calc(5% + 85px);
+    overflow:auto;
+    padding:1% 2% 0 2%;
+}
+
+.footerButtons {
+    background: white;
+    height: 85px;
+    position:fixed;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    bottom: 5%;
+    left:calc(310px + 5%);
+    right:5%;
+    padding: 0 2% 0 2%;
+    justify-content: center;
+    z-index: 2;
+}
+
+/*
+.paper {
+    background: #fff;
+    box-shadow: 0 5px 5px rgba(0,0,0,0.15);
+    display: block;
+    border-radius: 15px;
+    min-height: 75%;
+    height: auto;
+    min-width: 50%;
+    width: auto;
+    margin-left: calc(310px + 5%);
+    margin-right: 5%;
+    margin-top: 5%;
+    margin-bottom: 5%;
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 3% 3% 0 3%;
+}
+*/
+
+.narrative {
+    position: static;
+    width: 60%;
+    min-height: min-content;
+    display: block;
+    font-size: calc(8px + 0.5vw);
+    
+    padding-left: 15px;
+    padding-right: 15px;
+    margin-left: 1%;
+    margin-right: auto;
+    margin-bottom: 5%;
+    border-width: 1px;
+    outline: none;
+    border-color: #cccccc;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif; 
+}
+
+textarea{
+    resize:none;
+}
+
+#create_new_app_form
+{
+    text-align: center;
+}
+
+hr
+{
+    border-color:#cccccc;  
+    opacity: 0.3; 
+}
+
+/*adds a line at the bottom of the page to separate the buttons from the content*/
+hr.cover_page_foot{
+    border-color:#cccccc;  
+    opacity: 0.3;
+    margin-top: 315px;
+}
+
+/*header buttons are generally used for collapsible content*/
+.headerButton
+{
+    border: hidden;
+    background-color: transparent;
+}
+.collapsibleContent
+{
+    display: none;
+}
+
+
+/*a general style that can be used to make textboxes similar*/
+.generalTextboxStyle, .generalDropdownStyle
+{
+    font-size: calc(8px + 0.75vw);
+    padding-left: 5px;
+    border-radius: 4px;
+    outline-width: 0px;
+    margin-bottom: 1%;
+    min-width: 50%;
+    white-space: normal;
+}
+
+.generalTextboxStyle:focus
+{
+    border: 2px solid maroon;
+}
+
+/* Style the dropdown options selector */
+.generalDropdownStyle:focus
+{
+    border: 1px solid maroon;
+}
+/*Style that can be used for labels on data entry fields*/
+.fieldLayout 
+{
+    white-space: pre-line;
+    font-size: calc(8px + 0.5vw);
+}
+/*a general style for headers*/
+.generalHeaderFont
+{
+    font-size: calc(15px + 1vw);
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;  
+}
+
+/* fonts for the title of the webpage */
+.pageTitle
+{
+    font-size: 4.5vh; 
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif; 
+    text-align: center;
+    font-weight: bold;
+}
+
+        
+.smallPageTitle
+{
+    font-size: 3vh; 
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif; 
+    text-align: center;
+    font-weight: bold;
+}
+
+/* Styles for Continue, Save, and Back Input Buttons */
+input[value=Continue]
+{
+    border-radius: 6px;
+    background-color: #009933;
+    text-align: center;
+    color: white;
+    padding: 11px 2vw;
+    text-decoration: none;
+    cursor: pointer;
+    float:right;
+    font-size: calc(10px + 0.75vw);
+    transition-duration: 0.4s;
+
+}
+
+input[value=Continue]:hover 
+{
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.09),0 17px 50px 0 rgba(0,0,0,0.19);
+    background-color: #4CAF50;
+}
+
+input[value=Back], .cancelButton
+{
+    border-radius: 6px;
+    background-color: #999999;
+    text-align: center;
+    color: white;
+    padding: 11px 2vw;
+    text-decoration: none;
+    cursor: pointer; 
+    margin-bottom: 2%;
+    float: inside;
+    font-size: calc(10px + 0.75vw);
+    transition-duration: 0.4s;
+}
+
+input[value=Back]:hover
+{
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.09),0 17px 50px 0 rgba(0,0,0,0.19);
+    background-color: #aaaaaa;
+}
+
+input[value=Submit]
+{
+    background-color: maroon;
+    text-align: center;
+    color: white;
+    padding: 8px 20px;
+    text-decoration: none;
+    cursor: pointer; 
+    position: absolute;
+    right:0;
+    font-size: 17px;
+    transition-duration: 0.4s;
+}
+input[value=Submit]:hover
+{
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.09),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+input[value=Save]
+{
+    background-color: maroon;
+    text-align: center;
+    color: white;
+    padding: 8px 20px;
+    text-decoration: none;
+    cursor: pointer; 
+    margin-top: 3%;
+    margin-right: 3%;
+    position:absolute;
+    top:0;
+    right:0;
+    font-size: 17px;
+    transition-duration: 0.4s;
+}
+
+input[value=Save]:hover 
+{
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.09),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+.popUpSave
+{
+    background-color: maroon;
+    text-align: center;
+    color: white;
+    padding: 8px 20px;
+    text-decoration: none;
+    cursor: pointer; 
+    position:absolute;
+    font-size: 17px;
+    transition-duration: 0.4s;
+}
+.popUpSave:hover
+{
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.09),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+input[value=Skip]
+{
+    background: none;
+    border: none;
+    color: black;
+    text-decoration: underline;
+    cursor: pointer;
+    float: right;
+    font-size: calc(10px + 0.75vw);
+    position: absolute;
+    bottom: 2vh;
+    right: 15vw;
+    transition-duration: 0.4s;
+}
+
+input[value=Export]
+{
+    border-radius: 6px;
+    background-color: #660000;
+    text-align: center;
+    color: white;
+    padding: 11px 2vw;
+    text-decoration: none;
+    cursor: pointer; 
+    float: right;
+    font-size: calc(10px + 0.75vw);
+    position: absolute;
+    right: 46%;
+    transition-duration: 0.4s;
+}
+
+input[value=Export]:hover 
+{
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.09),0 17px 50px 0 rgba(0,0,0,0.19);
+    background-color: #990000;
+}
+
+input[value=Edit]
+{
+    background-color: maroon;
+    border-radius: 4px;
+    color: white;
+    padding: 8px 20px;
+    text-decoration: none;
+    cursor: pointer;   
+    font-size: 15px;
+}
+
+input[value=Edit]:hover 
+{
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.09),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+input[value=Delete]
+{
+    background-color: maroon;
+    border-radius: 4px;
+    color: white;
+    padding: 8px 20px;
+    text-decoration: none;
+    cursor: pointer;   
+    font-size: 15px;
+}
+
+input[value=Delete]:hover 
+{
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.09),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+
+/* Table of Contents Styling */
+#TableOfContents {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 25px;
+    margin-top: 50px;
+}
+
+#TableOfContents td{
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#TableOfContents tr:nth-child(even){background-color: #f2f2f2;}
+
+#TableOfContents tr:hover {background-color: #ddd;}
+
+/* Table of Contents Styling */
+#insertTables {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 25px;
+    margin-top: 50px;
+    border-radius: 25px;
+    
+}
+
+#insertTables td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#insertTables th {
+    background-color: maroon;
+    color: white;
+    padding: 8px;
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+}
+
+.action_button
+{
+    background-color: #990000;
+    border-radius: 4px;
+    color: white;
+    padding: 8px 20px;
+    text-decoration: none;
+    cursor: pointer;   
+    font-size: 15px;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.action_button:hover{
+    background: rgb(193, 0, 0);
+}
+
+.tableHeaderTitle{
+    font-size: calc(15px + 1vw);
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif; 
+    font-weight: bold;
+    margin-bottom: 1%;
+    
+}
+
+
+#insertTables tr:nth-child(odd){background: rgba(114, 0, 0, 0.1);;}
+
+#insertTables tr:hover {background-color: #ddd;}
+
+/*styling buttons in the table of contents page to look like hyperlinks*/
+.linkButton { 
+    background: none;
+    border: none;
+    color: maroon;
+    cursor: pointer;   
+    font-size: 25px;
+    float:right;
+    font-weight: bold;
+}
+
+/* MyApplications Buttons */
+input[value = Create\ New\ Tenure\ Application]
+{
+    background-color: maroon;
+    border-radius: 4px;
+    color: white;
+    padding: 8px 35px;
+    text-decoration: none;
+    cursor: pointer;   
+    font-size: 20px;
+    text-align: center;
+    transition-duration: 0.4s;
+
+}
+
+input[value=Create\ New\ Tenure\ Application]:hover 
+{
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.09),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+input[value = Create\ New\ Promotion\ Application]
+{
+    background-color: grey;
+    border-radius: 4px;
+    color: white;
+    padding: 8px 20px;
+    text-decoration: none;
+    cursor: not-allowed;   
+    font-size: 20px;
+    text-align: center;
+    /*    transition-duration: 0.4s;*/
+    margin-bottom: 1%;
+}
+
+/*input[value=Create\ New\ Promotion\ Application]:hover 
+{
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.09),0 17px 50px 0 rgba(0,0,0,0.19);
+}*/
+
+/* Class for styling the current application indentifier which goes on all pages*/
+.current_apps_subtitle
+{
+    display: inline-block;
+    font-size: 1.8vh;
+    font-weight: bold;
+}
+
+.current_apps_displayBox
+{
+    display: inline-block; 
+    background-color: gainsboro; 
+    width: fit-content; 
+    padding:0.5%; 
+    border-radius:6px; 
+    font-size: 1.8vh;
+    font-weight: bold;
+}
+/* A style for any text that describes the content of a page */
+
+.description
+{
+    white-space: normal;
+    font-size: 25px;
+}
+
+.error_log_buttons
+{
+    background-color: maroon;
+    border-radius: 4px;
+    color: white;
+    padding: 5px 10px;
+    text-decoration: none;
+    cursor: pointer;   
+    font-size: 15px;
+    float:right;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif; 
+}
+
+.error_log_buttons:hover
+{
+    background-color: #4CAF50;
+}
+
+/*Styles the pop up window modal for adding new records/credentials*/
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 10%;
+  top: 10%;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+  
+}
+
+/* Modal Content */
+.modal-content {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 35%;
+  border-radius: 15px;
+}
+
+/* The Close Button */
+.close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+
+
+
+
+

@@ -1,0 +1,319 @@
+<%-- 
+    Document   : user.jsp
+    Created on : Feb 20, 2019, 1:07:46 PM
+    Author     : Jake Gordon (2019)
+--%>
+
+
+<%@page import="common.User"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="java.util.Collection"%>
+<%@page import="java.util.Iterator"%>
+<%@page import="common.BuUser"%>
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Tenure Prep Form</title>
+        <link rel ="icon" href="../images/husky.png">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <script type="text/javascript">
+            //function to change the contents based off the tab currently selected
+            function openTab(e, tabName) {
+                var i, tabcontent, tabbuttons;
+
+                // Get elements with tabcontent class and hide them
+                tabcontent = document.getElementsByClassName("tabcontent");
+                for (i = 0; i < tabcontent.length; i++) {
+                    tabcontent[i].style.display = "none";
+                }
+
+                // Get elements w/ tabbuttons class and remove active class
+                tabbuttons = document.getElementsByClassName("tabbuttons");
+                for (i = 0; i < tabbuttons.length; i++) {
+                    tabbuttons[i].className = tabbuttons[i].className.replace(" active", "");
+                }
+
+                // Show current tab, add active class to its button
+                document.getElementById(tabName).style.display = "block";
+                e.currentTarget.className += " active";
+            }
+            
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+    </head>
+    <body bgcolor="#F4ECD9">
+        <% HttpSession session1 = request.getSession(true);
+                    common.BuUser use = (common.BuUser) session1.getAttribute("user");
+                    %>
+        <!--Buttons for our "tabs"-->
+        <div class="sidetabs">
+            <button class="tabbuttons" onclick="openTab(event, 'startup')" id="hometab">Home</button>
+            <button class="tabbuttons" onclick="openTab(event, 'coverpage')">Cover Page</button>
+            <button class="tabbuttons" onclick="openTab(event, 'firstpage')">First Page</button>               
+            <button class="tabbuttons" onclick="openTab(event, 'bgkInfo')">Background Information</button>
+            <button class="tabbuttons" onclick="openTab(event, 'teaching')">Teaching & Fulfillment </button>
+            <button class="tabbuttons" onclick="openTab(event, 'scholarly')">Scholarly Growth</button>
+            <button class="tabbuttons" onclick="openTab(event, 'uniAndCom')">University & Community Service</button>  
+            <button class="tabbuttons" onclick="openTab(event, 'sig')">Signature Pages</button>
+       </div>
+        
+
+
+          <!--Home Page, used for testing stuff right now but will be splash screen-->          
+        <div id="startup" class="tabcontent">
+
+            <div class="paper">
+                <form id='update_users_form' action='UserUpdateServlet' method='POST'>
+                    <div name="test"><%=use.getUserNumber() + " " + use.getFirstName() + " " + use.getLastName()%></div>
+                    <div class="dataField">First Name
+                    <input id="firstname" name="firstname" type="text" value=<%=use.getFirstName()%>>
+                </div>
+                <div class="dataField">Last Name
+                    <input id="lastname" name="lastname" type="text" value=<%=use.getLastName()%>>
+                </div>
+                <input type='submit' name='saveusers' value='save'/>             
+                </form>
+                
+                <!-- View User Database -->
+                <table border="1">
+                <tr>
+                    <th>User Number</th>
+                    <th>Login Name</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email Address</th>
+                    <th>User Role</th>
+                </tr>
+                <%
+                    Collection<User> u = (Collection<User>) request.getAttribute("u");
+                    Iterator<User> ui = u.iterator();
+                    User tempUser;
+                    while (ui.hasNext())
+                    {
+                        tempUser = ui.next();
+                    %>
+                    <tr>
+                        <td>
+                            <%=tempUser.getUserNumber()%>
+                        </td>
+                        <td>
+                            <%=tempUser.getLoginName()%>
+                        </td>
+                        <td>
+                            <%=tempUser.getFirstName()%>
+                        </td>
+                        <td>
+                            <%=tempUser.getLastName()%>
+                        </td>
+                        <td>
+                            <%=tempUser.getEmailAddress()%>
+                        </td>
+                        <td>
+                            <%=tempUser.getUserRole()%>
+                        </td>
+                    </tr>
+                    <%
+                        }
+                    %>
+            </table>                 
+                 
+            </div>
+                
+                
+        </div>
+        <!--Contents of Cover Page-->      
+        <div id="coverpage" class="tabcontent">
+
+            <div class="paper">
+                <div class="dataField">First Name
+                    <input id="firstname" type="text" value=<%=use.getFirstName()%>>
+                </div>
+                <div class="dataField">Last Name
+                    <input id="lastname" type="text" value=<%=use.getLastName()%>>
+                </div>
+                <div class="dataField">Current Rank
+                    <select name="rank">
+                        <option>Select a Rank</option>
+                        <option>Instructor</option>
+                        <option>Associate Professor</option>
+                        <option>Assistant Professor</option>
+                    </select>
+                </div>
+                <div class="dataField">Name of Department
+                    <select name="department">
+                        <option>Select a Department</option>
+                        <option>Digital Forensics</option>
+                        <option>Computer Science</option>
+                        <option>Mathematics</option>
+                        <option>EGGS</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <!--Contents of First Page-->  
+        <div id="firstpage" class="tabcontent">
+
+            <div class="paper">
+                <div><h1>Personal Information</h1>
+                    <div class="dataField">First Name
+                        <input id="firstname" type="text" value=<%=use.getFirstName()%>>
+                    </div>
+                    <div class="dataField">Last Name
+                        <input id="lastname" type="text" value=<%=use.getLastName()%>>
+                    </div>
+                    <div class="dataField">Campus Phone Number
+                        <input type="text" class="form-control" data-mask="(999) 999-9999"/>
+                    </div>
+                    <div class="dataField">Name of Department
+                        <select name="department">
+                            <option>Select a Department</option>
+                            <option>Digital Forensics</option>
+                            <option>Computer Science</option>
+                            <option>Mathematics</option>
+                            <option>EGGS</option>
+                        </select>
+                    </div>
+                    <div class="dataField">Date of Appointment
+                        <input type="date"/>
+                    </div>
+                    <div class="dataField">Anticipated Years of Service 
+                        <input type="number" name="years"
+                               min="0" max="70">
+                    </div>
+                </div>
+                <div><h1>Department Chair Information</h1>
+                    <div class="dataField">First Name
+                        <input id="firstname" type="text"/>
+                    </div>
+                    <div class="dataField">Last Name
+                        <input id="lastname" type="text"/>
+                    </div>
+                    <div class="dataField">Phone Number
+                        <input type="text" class="form-control" data-mask="(999) 999-9999"/>
+                    </div>
+
+                    <div class="dataField"><span style="font-weight:bold">Date of Application Submission</span>
+                        <input type="date"></div>
+                    <h4 style="color:red;">MUST BE SUBMITTED BEFORE DECEMBER 31ST OF THE PRESENT YEAR</h4>
+                </div> 
+            </div>   
+
+        </div> 
+        <!--Contents of Background Info-->  
+
+        <div id="bgkInfo" class="tabcontent">
+
+            <div class="paper">
+                <div>
+                    <h1>Undergraduate</h1>
+                    <div class="dataField">Institution
+                        <select>
+                            <option>Select your Institution</option>
+                        </select>
+                    </div>
+                    <div class="dataField">Degree Awarded
+                        <select>
+                            <option>N/A</option>
+                        </select>
+                    </div>
+                    <div class="dataField">Credits Received
+                        <input type="text" name="Credits"/>
+                    </div>
+                    <div class="dataField">Major
+                        <select>
+                            <option>Select Your Major</option>
+                        </select>
+                    </div>
+                    <div class="dataField">Minor
+                        <select>
+                            <option>Select Your Minor</option>
+                        </select>
+                    </div>
+                    <div class="dataField">Field of Study
+                        <select>
+                            <option>Select Your Field of Study</option>
+                        </select>
+                    </div>
+                    <div class="dataField">Attended From
+                        <input type="date"/>
+                    </div>
+                    <div class="dataField">Attended To
+                        <input type="date"/>
+                    </div>
+                    <div class="dataField">Date of Degree Conferral
+                        <input type="date"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Contents of Teaching and Fulfillment-->  
+        <div id="teaching" class="tabcontent">
+            <div class="paper">
+                <div><h1>Teaching & Fulfillment</h1>
+                    <div class="dataField">Institution
+                            <select>
+                                <option>Select your Institution</option>
+                            </select>
+                    </div>
+                    <div class="dataField">Rank
+                            <select>
+                                <option>Select your Rank</option>
+                            </select>
+                    </div>
+                    <div class="dataField">From 
+                            <input type="date"/>
+                    </div>
+                    <div class="dataField">To
+                            <input type="date"/>
+                    </div>
+                    <div class="dataField">Total Number of Years
+                        <input type="number" name="years"
+                               min="0" max="70">
+                    </div>
+                    <div class="dataField">Status
+                        <input type="radio" name="status">Full-time
+                        <input type="radio" name="status">Part-time
+                    </div>
+                </div>
+            </div>
+        </div>  
+        <!--Contents of Scholarly Growth Narrative-->  
+        <div id="scholarly" class="tabcontent">
+            <div class="paper">
+                <div><h1>Scholarly growth</h1>
+                    <textarea class="narrative" cols="500" rows="26" maxlength="3000">
+                       
+                    </textarea>
+                </div>
+            </div>
+        </div> 
+        <!--Contents of University and Community Services Page--> 
+        <div id="uniAndCom" class="tabcontent">
+            <div class="paper">
+            </div>
+        </div> 
+        <!--Contents of Signatures Page--> 
+        <div id="sig" class="tabcontent">
+            <div class="paper">
+            </div>
+        </div> 
+
+
+        <script type="text/javascript">
+            // Get elements with tabcontent class and hide them
+            var tabContOuter, j;
+
+            tabContOuter = document.getElementsByClassName("tabcontent");
+            for (j = 0; j < tabContOuter.length; j++) {
+                tabContOuter[j].style.display = "none";
+            }
+
+            // Display home tab
+            document.getElementById("hometab").click();
+        </script>
+    </body>
+</html>

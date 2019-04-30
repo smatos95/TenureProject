@@ -1,0 +1,160 @@
+<%-- 
+    Document   : educationalCred
+    Created on : Feb 24, 2019, 8:35:54 PM
+               : Shane Panagakos (2019)
+    Author     : Steven Matos (2019)
+--%>
+
+<%@page import="java.time.LocalDateTime"%>
+<%@page import="java.util.Iterator"%>
+<%@page import="common.Degree"%>
+<%@page import="common.Application"%>
+<%@page import="java.util.Collection"%>
+<%@page import="common.BuUser"%>
+<%@page import="mysql.DegreeManager"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<%
+   //Application app = (Application)request.getSession().getAttribute("currentapp");
+   //DegreeManager degm = new DegreeManager();
+   //Collection<Degree> degs = degm.getDegreesByApplication(app.getApplicationID());
+   //Iterator<Degree> degsItr = degs.iterator();
+%>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>JSP Page</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    </head>
+        <body bgcolor="#F4ECD9">
+            <%  DegreeManager dm = new DegreeManager();
+                common.BuUser use = (common.BuUser) request.getSession().getAttribute("user");
+                Application a = (Application) request.getSession().getAttribute("currentapp");
+                Collection<Degree> dc = null;
+                Degree d = null;
+                if (a != null)
+                    dc = dm.getDegreesByApplication(a.getApplicationID());
+                if (dc != null)
+                    d = dc.iterator().next();
+                
+                String institution = "Enter your Institution";
+                String degreeAwarded = "N/A";
+                String credits = "0";
+                String major = "";
+                String minor = "";
+                String field = "";
+                String attendFrom = LocalDateTime.now().toString().substring(0, LocalDateTime.now().toString().indexOf("T"));
+                String attendTo = LocalDateTime.now().toString().substring(0, LocalDateTime.now().toString().indexOf("T"));
+                String degreeConf = LocalDateTime.now().toString().substring(0, LocalDateTime.now().toString().indexOf("T"));
+                
+                if (d != null) {
+                    if (!((institution = d.getInstitution()) != null))
+                        institution = "Enter your Institution";
+                    if (!((degreeAwarded = d.getCredential()) != null))
+                        degreeAwarded = "N/A";
+                    if (d.getFieldOfStudy() != null) {
+                        String part = d.getFieldOfStudy().substring(0, d.getFieldOfStudy().indexOf("%"));
+                        if (part.equals("^") == false)
+                            major = part;
+                        part = d.getFieldOfStudy().substring(d.getFieldOfStudy().indexOf("%") + 1, d.getFieldOfStudy().lastIndexOf("%"));
+                        if (part.equals("^") == false)
+                            minor = part;
+                        part = d.getFieldOfStudy().substring(d.getFieldOfStudy().lastIndexOf("%") + 1);
+                        if (part.equals("^") == false)
+                            field = part;
+                    }
+                    if (d.getAttendancePeriods() != null) {
+                        attendFrom = d.getAttendancePeriods().substring(0, d.getAttendancePeriods().indexOf("%"));
+                        attendTo = d.getAttendancePeriods().substring(d.getAttendancePeriods().indexOf("%") + 1);
+                    }
+                }
+                %>
+            <jsp:include page="sideTabs.jsp"/>
+            <script>
+                document.getElementsByName("dropbutton")[0].className = "dropdown-btn active";
+                document.getElementsByName("eduCred")[0].className = "inDropdown active";
+            </script>
+        <div id="bgkInfo" class="tabcontent">
+
+            <div class="paper"> 
+                <div class="pageTitle">Education Credentials</div>
+                    <div class=generalHeaderFont">Submitted Credentials</div>
+                    <table>
+                        <%//while (degsItr.hasNext()) {
+                            //Degree deg =  degsItr.next();
+                            //out.print("<tr>");
+                            //deg.printSummaryRow(out);
+                            //out.println("</tr>");
+                        //}%>
+                    </table>
+                    
+                    <div class="generalHeaderFont">Undergraduate</div>
+                    <div>List your educational credentials for each degree:</div>
+                    <form id="update_educred_page_form" action="UpdateEduCredServlet" method="POST">
+                    <div class="dataField">Institution
+                        <input type="text" name ="Institution" class="generalTextboxStyle" value=<%=institution%>>                        
+                    </div>
+                    <div class="dataField">Degree Awarded
+                        <select name="degree" class="generalTextboxStyle">
+                            <option <%if (degreeAwarded.equals("N/A")){%> selected="selected"<%}%>>N/A</option>
+                            <option <%if (degreeAwarded.equals("Associates")){%> selected="selected"<%}%>>Associates</option>
+                            <option <%if (degreeAwarded.equals("Bachelors")){%> selected="selected"<%}%>>Bachelors</option>
+                            <option <%if (degreeAwarded.equals("Masters")){%> selected="selected"<%}%>>Masters</option>
+                            <option <%if (degreeAwarded.equals("Doctoral")){%> selected="selected"<%}%>>Doctoral</option>
+                        </select>
+                    </div>
+                    <div class="dataField">Credits Received
+                        <input type="text" name="Credits" class="generalTextboxStyle" value=<%=credits%>>
+                    </div>
+                    <div class="dataField">Major
+                        <input type="text" name="major" class="generalTextboxStyle" value=<%=major%>>
+                    </div>
+                    <div class="dataField">Minor
+                        <input type="text" name="minor" class="generalTextboxStyle" value=<%=minor%>>
+                    </div>
+                    <div class="dataField">Field of Study
+                        <input type="text" name="field" class="generalTextboxStyle" value=<%=field%>>
+                    </div>
+                    <div class="dataField">Attended From
+                        <input type="date" name="degreeFrom" class="generalTextboxStyle" value=<%=attendFrom%>>
+                    </div>
+                    <div class="dataField">Attended To
+                        <input type="date" name="degreeTo" class="generalTextboxStyle" value=<%=attendTo%>>
+                    </div>
+                    <div class="dataField">Date of Degree Conferral
+                        <input type="date" name="degreeConferralDate" class="generalTextboxStyle" value=<%=degreeConf%>>
+                    </div>
+                    <!--save button-->
+                        <input type="submit" value="SAVE"/>
+                    </form>
+                    <hr>
+                <form id='redirct_page' action='RedirectServlet' method='POST'>
+                    <!--back button-->
+                        <span><input type="submit" name="first" value="BACK"/>
+                            <!--next button-->
+                    <input type="submit" name="teachFac" value="CONTINUE"/></span>
+                    <input type="submit" name="teachFac" value="Skip"/>
+                </form>
+            </div>
+        </div>
+            <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+                    
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }           
+        </script>
+    </body>
+</html>

@@ -1,0 +1,148 @@
+<%-- 
+    Document   : home
+    Created on : Feb 24, 2019, 4:49:59 PM
+    Author     : Jake Gordon (2019)
+--%>
+
+<%@page import="common.User"%>
+<%@page import="common.BuUser"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="java.util.Collection"%>
+<%@page import="java.util.Iterator"%>
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Tenure Prep Form</title>
+        <link rel ="icon" href="../images/husky.png">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <title>JSP Page</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+
+    </head>
+
+    <body bgcolor="#F4ECD9">
+        <% HttpSession session1 = request.getSession(true);
+            common.BuUser use = (common.BuUser) session1.getAttribute("user");
+        %>
+        <jsp:include page="sideTabs.jsp"/>
+        <script>
+            document.getElementsByName("home")[0].className = "tabbuttons active";
+        </script>
+
+        <div class ="tabcontent">
+            <div class ="paper">
+                <div style ="font-size:25pt;">
+                        <!-- Table of contents code-->    
+                        <div id="toc_container">
+                            <p class="toc_title">Overview</p>
+                        <form id='redirct_page' action='RedirectServlet' method='POST'>
+                            <input type="submit" class="linkButton" name = "cover" value="Cover Page"/><br/>
+                            <input type="submit" class="linkButton" name = "first" value="First Page"/><br/>
+                            <p>Background Information</p>
+                            <input type="submit" class="linkButton" name = "eduCred" value="Educational Credentials"/><br/>
+                            <input type="submit" class="linkButton" name = "teachFac" value="Teaching/Faculty"/><br/>
+                            <input type="submit" class="linkButton" name = "workExp" value="Other Work Experience"/><br/>
+                            <input type="submit" class="linkButton" name = "transcripts" value="Official Transcripts"/><br/>
+                             <p>Teaching and Fulfillment</p>
+                            <input type="submit" class="linkButton" name = "teachingNarrative" value="Professional Responsibilities"/><br/>
+                            <input type="submit" class="linkButton" name = "teachingHistory" value="BU Teaching History"/><br/>
+                            <input type="submit" class="linkButton" name = "studentEvaluations" value="Summary Tables of Student Evaluations"/><br/>
+                            <input type="submit" class="linkButton" name = "fulfillmentProfessional" value="Fulfillment of Professional Responsibilities"/><br/>
+                            <input type="submit" class="linkButton" name = "timeActivities" value="Assigned Time Activities"/><br/>
+                            <input type="submit" class="linkButton" name = "Innovations" value="Teaching Related Innovations"/><br/> 
+                            <p>Scholarly Growth</p>
+                            <input type="submit" class="linkButton" name = "scholar" value="Narrative on Continuing Scholarly Growth"/><br/>
+                            <input type="submit" class="linkButton" name = "Activities" value="Activities"/><br/>           
+                             <p>University/Community</p>
+                            <input type="submit" class="linkButton" name = "uniCommNarrative" value="Narrative on Contributions to University and Community"/><br/>
+                            <input type="submit" class="linkButton" name = "committeeService" value="Committee Service"/><br/>
+                            <input type="submit" class="linkButton" name = "studentOrgAdvisement" value="Advisement to Student Organizations"/><br/>
+                            <input type="submit" class="linkButton" name = "otherContributions" value="Other Contributions to the University"/><br/>
+                            <input type="submit" class="linkButton" name = "communityContributions" value="Community Contributions"/><br/>
+                            <p>Signature Pages</p>
+                            <input type="submit" class="linkButton" name = "tenureSigPage" value="Tenure Application Signature Page"/><br/>
+                            <input type="submit" class="linkButton" name = "deptNarrativeSigPage" value="Department Committee Narrative and Signature Page"/><br/>
+                            <input type="submit" class="linkButton" name = "chairNarrativeSigPage" value="Chairperson Narrative and Signature Page"/><br/>
+                            <input type="submit" class="linkButton" name = "specialNote" value="Special Note"/><br/>
+                        </form>
+                        </div>
+                        
+                        
+
+                        <!--
+                    <p style = "text-indent: 50px;">
+                    The Collective Bargaining Agreement defines “Tenure” as the right 
+                    of a faculty<br/> member to hold his/her position and not be removed except 
+                    for just cause.  Until such<br/> time as tenure is granted, a faculty 
+                    member on a tenure-track appointment is referred<br/> to as a probationary 
+                    (non-tenured) faculty member.<br/></p>
+                    <p style = "text-indent: 50px;">Tenure may be granted to a faculty member by the 
+                        President after consideration<br/> of the criteria which are listed and discussed 
+                        in detail later in this document. It is based<br/> upon the evidence presented by 
+                        the faculty member, together with recommendations of<br/> the department tenure 
+                        committee, the department chairperson, and the University-Wide<br/> Tenure Committee.</p>
+                    <p style = "text-indent: 50px;">Each applicant, the department chairperson and the members of the department<br/> 
+                    evaluation and tenure committees have the responsibility of becoming familiar 
+                    with the<br/> details of Article 12 - PERFORMANCE REVIEW AND EVLAUATION OF FACULTY<br/> 
+                    and Article 15 - TENURE of the Collective Bargaining Agreement.  
+                    The chairperson of<br/> the university-wide tenure committee may be contacted 
+                    for clarification with regard to<br/> any items and will be available to meet 
+                    with all probationary faculty in order to make<br/> them aware of their responsibilities, 
+                    as well as those of the department committees and<br/> the department chairperson.  
+                    In addition, “probationary FACULTY shall be made aware,<br/> by management in writing, 
+                    at the time of their employment of the rules, regulations,<br/> procedures and objectives 
+                    they are required to meet as FACULTY MEMBERS of the<br/> University.” (Article 12. Section F.1)</p>
+                    <p style = "text-indent: 50px;">Faculty members whose basic responsibilities are outside of the classroom setting<br/> shall 
+                    be evaluated according to their job descriptions.  (See Article 12.D.2)  The job<br/> 
+                    description must be included as a part of the tenure document.</p>
+                    <p style = "text-indent: 50px;">In addition, “each applicant for tenure shall have the right to request 
+                    and make an<br/> appearance before the university-wide tenure committee to speak 
+                    on his/her own behalf<br/> before the committee submits its recommendations to the 
+                    President or his/her designee.”<br/> (Article 15.E.3)</p>
+                        -->    
+                </div>
+            </div>
+        </div>
+
+        <!--
+        <div class="tabcontent">
+
+            <div class="paper">
+                <form id='update_users_form' action='UserUpdateServlet' method='POST'>
+                    <div class="dataField">First Name
+                        <input id="firstname" name="firstname" type="text" value=<%=use.getFirstName()%>>
+                    </div>
+                    <div class="dataField">Last Name
+                        <input id="lastname" name="lastname" type="text" value=<%=use.getLastName()%>>
+                    </div>
+                    <input type='submit' name='saveusers' value='save'/>             
+                </form>
+
+        <!-- View User Database 
+
+    </div>
+        -->       
+        <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>

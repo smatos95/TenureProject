@@ -1,0 +1,140 @@
+<%-- 
+    Document   : myApplication
+    Created on : Mar 24, 2019, 2:04:39 PM
+    Author     : Jake Gordon (2019)
+
+CODE WAS WRITTEN TO DISPLAY EXISTING TENURE AND PROMOTION APPS (SEPARATELY)
+FROM THE COLLECTION OF APPS, BUT APPS COULD BE NULL. NEED TO PUT CODE TO CHECK
+FOR NULL ARRAY (NO PROMO APPS OR NO TENURE APPS) AND DISPLAY 'NO ____ APPS TO EDIT'.
+STARTING LINES 58 AND 78
+--%>
+
+<%@page import="java.util.Iterator"%>
+<%@page import="java.util.Collection"%>
+<%@page import="common.Application"%>
+<%@page import="common.BuUser"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <title>My Application</title>
+    </head>
+    <body bgcolor="#F4ECD9">
+        <%
+        common.BuUser user = (common.BuUser) request.getSession().getAttribute("user");
+        Collection<Application> appCollection = (Collection<Application>) request.getSession().getAttribute("apps");
+        Application app = (Application) request.getSession().getAttribute("currentapp");
+        %>
+        
+        
+        <jsp:include page="disabledTabs.jsp"/>
+        <script>
+            document.getElementsByName("appselect")[0].className = "tabbuttons active";
+        </script>
+        <div class="paper">
+        <div class="pageTitle" style="margin-bottom: 2%; font-size: 3.5vw;">My Applications</div> 
+        <div>
+        <div style="display: inline-block; font-weight:bold;font-size: 2.25vw;">Current Application:</div> 
+        <div style="display: inline-block; background-color: gainsboro; width: fit-content; padding:0.5%; border-radius:6px; font-size: 2.25vw;">
+            <% if (request.getSession().getAttribute("currentapp") == null) {%>
+            No Application Selected
+            <%} else {
+                Application current = (Application) request.getSession().getAttribute("currentapp");
+            %>
+            <%=current.getApplicationType() + " application created on " + current.getCreationDate().toString().substring(0, 10)%>
+            <%}%>
+        </div>
+        </div>
+        <hr>
+        
+        <li style = "list-style: none;"><span style ="font-size: 1.5vw; font-weight: bold;">Edit an Existing Application: </span>
+            <form id='app_selector_form' action='SetApplicationServlet' method='POST'>
+                <div style="display: inline-block; font-size: 1.5vw; text-indent: 1.5vw;">Tenure Application:</div> <select style="width:fit-content; font-size: 1.5vw; margin-left: 3.5%; padding-left: 1.3vw; padding-right: 1.3vw;"class="generalTextboxStyle"id="display_app_appselect_dropdown" name='tappselect'>
+                                <%
+                                    Iterator<Application> appIterator;
+                                    Application temp;
+                                    if (appCollection != null && appCollection.isEmpty() == false) {
+                                        // Go through the apps and add them as options to select from
+                                        appIterator = appCollection.iterator();
+                                        while (appIterator.hasNext()) 
+                                        {
+                                            temp = appIterator.next();
+                                            if(temp.getApplicationType().equalsIgnoreCase("tenure"))
+                                            {
+                                %>
+                                <option value=<%=temp.getApplicationID()%>>
+                                    <%=temp.getApplicationType() + " application created on " + temp.getCreationDate().toString().substring(0, 10)%>
+                                </option>     
+                                      <%    }
+                                        }
+                                    } else {%>
+                                    You have no Tenure applications
+                                    <%}%>
+                            </select>                               
+                            <input type='submit' name='submitTenure' id="display_app_submit_choice_button" value="Edit" />    
+                            </form>
+                            
+                            <form id='app_selector_form' action='SetApplicationServlet' method='POST'>
+                                <div style="display: inline-block; font-size: 1.5vw; text-indent: 1.5vw;">Promotion Application:</div> 
+                                <select style="width:fit-content; font-size: 1.5vw; cursor: not-allowed" class="generalTextboxStyle" id="disablePromotion" name='pappselect'> <!-- Selection menu is currently disabled using a unique id"-->
+                                <%
+                                    if (appCollection != null && appCollection.isEmpty() == false) {
+                                        // Go through the apps and add them as options to select from
+                                        appIterator = appCollection.iterator();
+                                        while (appIterator.hasNext()) 
+                                        {
+                                            temp = appIterator.next();
+                                            if(temp.getApplicationType().equalsIgnoreCase("promotion"))
+                                            {
+                                %>
+                                <option value=<%=temp.getApplicationID()%>>
+                                    <%=temp.getApplicationType() + " application created on " + temp.getCreationDate().toString().substring(0, 10)%>
+                                </option>
+                                      <%    }
+                                        }
+                                    } else {%>
+                                    You have no Promotion applications
+                                    <%}%>
+                            </select>
+                            <input type='submit' name='submitPromotion' id="disabledEdit" value="Edit" style="cursor: not-allowed; background-color: grey;" /> <!-- Edit button is currently disabled using a unique id"-->
+                            </form>
+                           
+                            </li>
+        <ul>
+            <li style ="font-size: 2.5vw; margin-top: 3%; list-style: none">Start a new Application: 
+            <form id="send_to_home_form" action="CreateApplicationServlet" method="POST">
+                <input type="submit" id="display_app_new_tenure_button" value="Create New Tenure Application" name="tenure"><br>
+                <input type="submit" id="display_app_new_promotion_button" value="Create New Promotion Application" name="promotion">
+            </form></li>
+            
+        </ul>
+                            </div>
+                           
+        <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            } 
+            // this document object allows for any element with the corresponding tag to be disabled
+            document.getElementById("disablePromotion").disabled = true;
+            document.getElementById("disabledEdit").disabled = true;
+            document.getElementById("display_app_new_promotion_button").disabled = true;
+        </script>
+    </body>
+</html>
+
+
+

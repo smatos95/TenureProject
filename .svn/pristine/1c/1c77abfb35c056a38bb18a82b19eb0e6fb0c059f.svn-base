@@ -1,0 +1,425 @@
+package mysql;
+
+import database.ApplicationManager;
+import database.DabasePropertyManager;
+import database.DegreeManager;
+import database.GradesManager;
+import database.LocalExpManager;
+import database.MediaManager;
+import database.NarrativeManager;
+import database.ProfileManager;
+import database.SchActivityManager;
+import database.SvcActivityManager;
+import database.WorkExpManager;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.logging.Level;
+import utilities.WebErrorLogger;
+
+
+/**
+ * Represents a MySQL database that implements the <code>DatabaseManagement</code>
+ * interface.
+ *
+ * @author Curt Jones (2018)
+ * @author Gryphon Ayers (2019)
+ */
+public class DatabaseManagement implements database.DatabaseManagement {
+
+    private database.UserManager userManager; 
+    private database.ApplicationManager applicationManager;
+    private database.DegreeManager degreeManager;
+    private database.GradesManager gradesManager;
+    private database.LocalExpManager localExpManager;
+    private database.MediaManager mediaManager;
+    private database.NarrativeManager narrativeManager;
+    private database.ProfileManager profileManager;
+    private database.SchActivityManager schActivityManager;
+    private database.SvcActivityManager svcActivityManager;
+    private database.WorkExpManager workExpManager;
+    private database.DabasePropertyManager dabasePropertyManager;
+    
+
+    @Override
+    public void initializeDatabaseManagement() {
+
+    }
+    
+    @Override
+    public void CreateTables() {
+        String bu_users = "CREATE TABLE IF NOT EXISTS `Tenure`.`bu_users` (" +
+                "`userNumber` INT(11) NOT NULL DEFAULT '0', " +
+                "`loginName` VARCHAR(20) NOT NULL, " +
+                "`firstName` VARCHAR(35) NULL DEFAULT '', " +
+                "`lastName` VARCHAR(35) NULL DEFAULT '', " +
+                "`emailAddress` VARCHAR(60) NULL DEFAULT '', " +
+                "`displayName` VARCHAR(60) NULL DEFAULT '', " +
+                "`userRole` VARCHAR(30) NOT NULL, " +
+                "`lastLoginTime` VARCHAR(25) NULL DEFAULT NULL, " +
+                "`loginCount` INT(11) NULL DEFAULT '0', " +
+                "PRIMARY KEY (`userNumber`), " +
+                "UNIQUE INDEX `loginName` (`loginName` ASC), " +
+                "UNIQUE INDEX `userNumber` (`userNumber` ASC), " +
+                "INDEX `bu_user_email_index` (`emailAddress` ASC)) ;";
+        String error_logs = "CREATE TABLE IF NOT EXISTS `Tenure`.`error_logs` (" +
+                "`EVENT_ID` INT(11) NOT NULL AUTO_INCREMENT, " +
+                "`EVENT_DATE` DATETIME NULL DEFAULT NULL, " +
+                "`LEVEL` VARCHAR(15) NULL DEFAULT NULL, " +
+                "`LOGGER` VARCHAR(45) NULL DEFAULT NULL, " +
+                "`MSG` VARCHAR(260) NULL DEFAULT NULL, " +
+                "`THROWABLE` VARCHAR(260) NULL DEFAULT NULL, " +
+                "PRIMARY KEY (`EVENT_ID`)) ;";
+       String properties = "CREATE TABLE IF NOT EXISTS `Tenure`.`properties` (" +
+               "`propertyNumber` INT(11) NOT NULL AUTO_INCREMENT, " +
+               "`propertyName` VARCHAR(64) NOT NULL, " +
+               "`propertyValue` VARCHAR(128) NOT NULL, " +
+               "`description` VARCHAR(1024) NULL DEFAULT '', " +
+               "`previousValue` VARCHAR(128) NULL DEFAULT NULL, " +
+               "`defaultValue` VARCHAR(128) NULL DEFAULT NULL, " +
+               "PRIMARY KEY (`propertyNumber`), " +
+               "UNIQUE INDEX `propertyNumber` (`propertyNumber` ASC), " +
+               "UNIQUE INDEX `propertyName` (`propertyName` ASC)) ;";
+       String application = "CREATE TABLE IF NOT EXISTS `Tenure`.`application` ( " +
+                "`applicationID` INT NOT NULL AUTO_INCREMENT, " +
+                "`applicantUser` INT NOT NULL, " +
+                "`applicationType` ENUM('tenure', 'professorship', 'promotion') NULL, " +
+                "`creationDate` DATETIME NOT NULL, " +
+                "`submissionDate` DATETIME NULL, " +
+                "`department` VARCHAR(45) NULL, " +
+                "`departmentChair` VARCHAR(90) NULL, " +
+                "`chairPhone` VARCHAR(15) NULL, " +
+                "`customFirstName` VARCHAR(45) NULL, " +
+                "`customLastName` VARCHAR(45) NULL, " +
+                "PRIMARY KEY (`applicationID`), " +
+                "UNIQUE INDEX `applicantID_UNIQUE` (`applicationID` ASC), " +
+                "INDEX `applicantUser_idx` (`applicantUser` ASC), " +
+                "CONSTRAINT `applicantUser` " +
+                "FOREIGN KEY (`applicantUser`) " +
+                "REFERENCES `Tenure`.`bu_users` (`userNumber`) " +
+                "ON DELETE CASCADE " +
+                "ON UPDATE NO ACTION) ;";
+       String profile = "CREATE TABLE IF NOT EXISTS `Tenure`.`profile` ( " +
+               "`profileID` INT NOT NULL AUTO_INCREMENT, " +
+               "`profileUser` INT NOT NULL, " +
+               "`campusPhone` VARCHAR(15) NOT NULL, " +
+               "`yearsOfService` INT NULL, " +
+               "`rank` VARCHAR(45) NULL, " +
+               "PRIMARY KEY (`profileID`), " +
+               "INDEX `profileUser_idx` (`profileUser` ASC), " +
+               "CONSTRAINT `profileUser` " +
+               "FOREIGN KEY (`profileUser`) " +
+               "REFERENCES `Tenure`.`bu_users` (`userNumber`) " +
+               "ON DELETE CASCADE " +
+               "ON UPDATE NO ACTION) ;";
+       String narrative = "CREATE TABLE IF NOT EXISTS `Tenure`.`narrative` ( " +
+                "`narrativeID` INT NOT NULL AUTO_INCREMENT, " +
+                "`application` INT NOT NULL, " +
+                "`narrativeText` VARCHAR(9000) NULL, " +
+                "`narrativeMedia` INT NULL, " +
+                "PRIMARY KEY (`narrativeID`), " +
+                "INDEX `application_idx` (`application` ASC), " +
+                "INDEX `media_idx` (`narrativeMedia` ASC), " +
+                "CONSTRAINT `application` " +
+                "FOREIGN KEY (`application`) " +
+                "REFERENCES `Tenure`.`application` (`applicationID`) " +
+                "ON DELETE NO ACTION " +
+                "ON UPDATE NO ACTION, " +
+                "CONSTRAINT `media` " +
+                "FOREIGN KEY (`narrativeMedia`) " +
+                "REFERENCES `Tenure`.`media` (`mediaID`) " +
+                "ON DELETE NO ACTION " +
+                "ON UPDATE NO ACTION) ;";
+       String media = "CREATE TABLE IF NOT EXISTS `Tenure`.`media` ( " +
+                "`mediaID` INT NOT NULL AUTO_INCREMENT, " +
+                "`mediaFile` VARCHAR(60) NOT NULL, " +
+                "`mediaFilename` VARCHAR(50) NOT NULL, " +
+                "`mediaName` VARCHAR(60) NOT NULL, " +
+                "`creationDate` DATETIME NOT NULL, " +
+                "`mediaHash` CHAR(40) NOT NULL, " +
+                "PRIMARY KEY (`mediaID`)) ;";
+       String grades = "CREATE TABLE IF NOT EXISTS `Tenure`.`grades` ( " +
+                "  `gradesID` INT NOT NULL AUTO_INCREMENT, " +
+                "  `application` INT NOT NULL, " +
+                "  `semester` ENUM('Spring', 'Fall', 'Summer', 'Winter', 'N/A') NOT NULL, " +
+                "  `year` YEAR NOT NULL, " +
+                "  `course` INT NOT NULL, " +
+                "  `section` CHAR(3) NOT NULL, " +
+                "  `instructor` INT NULL, " +
+                "  `gradeA` INT NOT NULL DEFAULT 0, " +
+                "  `gradeAminus` INT NOT NULL DEFAULT 0, " +
+                "  `gradeBplus` INT NOT NULL DEFAULT 0, " +
+                "  `gradeB` INT NOT NULL DEFAULT 0, " +
+                "  `gradeBminus` INT NOT NULL DEFAULT 0, " +
+                "  `gradeCplus` INT NOT NULL DEFAULT 0, " +
+                "  `gradeC` INT NOT NULL DEFAULT 0, " +
+                "  `gradeCminus` INT NOT NULL DEFAULT 0, " +
+                "  `gradeDplus` INT NOT NULL DEFAULT 0, " +
+                "  `gradeD` INT NOT NULL DEFAULT 0, " +
+                "  `gradeF` INT NOT NULL DEFAULT 0, " +
+                "  `gradeR` INT NOT NULL DEFAULT 0, " +
+                "  `gradeW` INT NOT NULL DEFAULT 0, " +
+                "  PRIMARY KEY (`gradesID`), " +
+                "  INDEX `department_idx` (`department` ASC), " +
+                "  INDEX `instructor_idx` (`instructor` ASC), " +
+                "  INDEX `application_idx` (`application` ASC), " +
+                "  CONSTRAINT `department` " +
+                "    FOREIGN KEY (`department`) " +
+                "    REFERENCES `Tenure`.`department` (`departmentID`) " +
+                "    ON DELETE NO ACTION " +
+                "    ON UPDATE NO ACTION, " +
+                "  CONSTRAINT `instructor` " +
+                "    FOREIGN KEY (`instructor`) " +
+                "    REFERENCES `Tenure`.`bu_users` (`userNumber`) " +
+                "    ON DELETE NO ACTION " +
+                "    ON UPDATE NO ACTION, " +
+                "  CONSTRAINT `application` " +
+                "    FOREIGN KEY (`application`) " +
+                "    REFERENCES `Tenure`.`application` (`applicationID`) " +
+                "    ON DELETE NO ACTION " +
+                "    ON UPDATE NO ACTION); ";
+       String degree = "CREATE TABLE IF NOT EXISTS `Tenure`.`degree` ( " +
+                "`degreeID` INT NOT NULL, " +
+                "`application` INT NOT NULL, " +
+                "`institution` VARCHAR(60) NOT NULL, " +
+                "`credential` VARCHAR(45) NOT NULL, " +
+                "`fieldOfStudy` VARCHAR(45) NULL, " +
+                "`attendancePeriods` VARCHAR(90) NULL, " +
+                "`transcript` INT NULL, " +
+                "PRIMARY KEY (`degreeID`), " +
+                "INDEX `application_idx` (`application` ASC), " +
+                "INDEX `transcript_idx` (`transcript` ASC), " +
+                "CONSTRAINT `application` " +
+                "FOREIGN KEY (`application`) " +
+                "REFERENCES `Tenure`.`application` (`applicationID`) " +
+                "ON DELETE NO ACTION " +
+                "ON UPDATE NO ACTION, " +
+                "CONSTRAINT `transcript` " +
+                "FOREIGN KEY (`transcript`) " +
+                "REFERENCES `Tenure`.`media` (`mediaID`) " +
+                "ON DELETE NO ACTION " +
+                "ON UPDATE NO ACTION) ;";
+       String localexp = "CREATE TABLE IF NOT EXISTS `Tenure`.`localexp` ( " +
+                "`localexpID` INT NOT NULL, " +
+                "`application` INT NOT NULL, " +
+                "`courseName` VARCHAR(60) NULL, " +
+                "`lastSemesterTaught` VARCHAR(45) NULL, " +
+                "`miscInfo` VARCHAR(3000) NULL, " +
+                "PRIMARY KEY (`localexpID`), " +
+                "INDEX `application_idx` (`application` ASC), " +
+                "CONSTRAINT `application_localexp` " +
+                "FOREIGN KEY (`application`) " +
+                "REFERENCES `Tenure`.`application` (`applicationID`) " +
+                "ON DELETE NO ACTION " +
+                "ON UPDATE NO ACTION) ;";
+       String schactivity = "CREATE TABLE IF NOT EXISTS `Tenure`.`schactivity` ( " +
+                "`schActivityID` INT NOT NULL, " +
+                "`application` INT NOT NULL, " +
+                "`category` VARCHAR(45) NULL, " +
+                "`activityName` VARCHAR(45) NULL, " +
+                "`activityInfo` INT NULL, " +
+                "PRIMARY KEY (`schActivityID`, `application`), " +
+                "INDEX `application_idx` (`application` ASC), " +
+                "INDEX `activityInfo_idx` (`activityInfo` ASC), " +
+                "CONSTRAINT `application_sch` " +
+                "FOREIGN KEY (`application`) " +
+                "REFERENCES `Tenure`.`application` (`applicationID`) " +
+                "ON DELETE NO ACTION " +
+                "ON UPDATE NO ACTION, " +
+                "CONSTRAINT `activityInfo` " +
+                "FOREIGN KEY (`activityInfo`) " +
+                "REFERENCES `Tenure`.`narrative` (`narrativeID`) " +
+                "ON DELETE NO ACTION " +
+                "ON UPDATE NO ACTION) ;";
+       String svcactivity = "CREATE TABLE IF NOT EXISTS `Tenure`.`svcactivity` ( " +
+                "`svcActivityID` INT NOT NULL, " +
+                "`application` INT NOT NULL, " +
+                "`type` VARCHAR(50) NULL, " +
+                "`supportDocument` INT NULL, " +
+                "PRIMARY KEY (`svcActivityID`), " +
+                "INDEX `application_idx` (`application` ASC), " +
+                "INDEX `supportDocument_idx` (`supportDocument` ASC), " +
+                "CONSTRAINT `application_svc` " +
+                "FOREIGN KEY (`application`) " +
+                "REFERENCES `Tenure`.`application` (`applicationID`) " +
+                "ON DELETE NO ACTION " +
+                "ON UPDATE NO ACTION, " +
+                "CONSTRAINT `supportDocument` " +
+                "FOREIGN KEY (`supportDocument`) " +
+                "REFERENCES `Tenure`.`media` (`mediaID`) " +
+                "ON DELETE NO ACTION " +
+                "ON UPDATE NO ACTION) ;";
+       String teachingexp = "CREATE TABLE IF NOT EXISTS `Tenure`.`teachingexp` (" +
+                "`teachingID` INT NOT NULL, " +
+                "`application` INT NOT NULL, " +
+                "`institution` VARCHAR(45) NULL, " +
+                "`rank` VARCHAR(45) NULL, " +
+                "`teachingDates` VARCHAR(45) NULL, " +
+                "`yearsOfService` VARCHAR(45) NULL, " +
+                "`isFullTime` TINYINT NULL, " +
+                "PRIMARY KEY (`teachingID`), " +
+                "INDEX `application_idx` (`application` ASC), " +
+                "CONSTRAINT `application_teaching` " +
+                "FOREIGN KEY (`application`) " +
+                "REFERENCES `Tenure`.`application` (`applicationID`) " +
+                "ON DELETE NO ACTION " +
+                "ON UPDATE NO ACTION) ;";
+       String workexp = "CREATE TABLE IF NOT EXISTS `Tenure`.`workexp` (\n" +
+                "`workID` INT NOT NULL, " +
+                "`application` INT NOT NULL, " +
+                "`institution` VARCHAR(45) NULL, " +
+                "`title` VARCHAR(45) NULL, " +
+                "`experienceDates` VARCHAR(60) NULL, " +
+                "`isFullTime` TINYINT NULL, " +
+                "PRIMARY KEY (`workID`), " +
+                "INDEX `application_idx` (`application` ASC), " +
+                "CONSTRAINT `application` " +
+                "FOREIGN KEY (`application`) " +
+                "REFERENCES `Tenure`.`application` (`applicationID`) " +
+                "ON DELETE NO ACTION " +
+                "ON UPDATE NO ACTION) ;";
+       
+        
+        Connection conn = mysql.Web_MYSQL_Helper.getConnection();
+        try {
+           Statement s = conn.createStatement();
+           s.addBatch(bu_users);
+           s.addBatch(error_logs);
+           s.addBatch(properties);
+           s.addBatch(application);
+           s.addBatch(profile);
+           s.addBatch(narrative);
+           s.addBatch(media);
+           s.addBatch(grades);
+           s.addBatch(degree);
+           s.addBatch(localexp);
+           s.addBatch(schactivity);
+           s.addBatch(svcactivity);
+           s.addBatch(teachingexp);
+           s.addBatch(workexp);
+           
+           s.executeBatch();
+           s.close();
+           conn.rollback(); // ensure table statements actually work
+        } catch (SQLException ex) {
+            WebErrorLogger.log(Level.SEVERE, "SQLException in CreateTables() error: " + ex);
+        } finally {
+            mysql.Web_MYSQL_Helper.closeConnection(conn);
+        }
+    }
+
+    @Override
+    public database.DabasePropertyManager getDatabasePropertyManager() {
+        if (dabasePropertyManager == null) dabasePropertyManager = new mysql.DatabasePropertyManager();
+        return dabasePropertyManager;
+    }
+
+    /**
+     * Returns a <code>UserManager</code> object for this
+     * <code>DatabaseManagement</code>.
+     *
+     * @return A <code>UserManager</code>  object.
+     * @see common.User 
+     */
+    @Override
+    public database.UserManager getUserManager() {
+        if (userManager == null) userManager = new mysql.UserManager();
+        return userManager;
+    }
+    
+    /**
+     * Returns a <code>ApplicationManager</code> object for this
+     * <code>DatabaseManagement</code>.
+     *
+     * @return A <code>ApplicationManager</code>  object.
+     * @see common.Application 
+     */
+    @Override
+    public ApplicationManager getApplicationManager() {
+         if (this.applicationManager != null) {
+            this.applicationManager = new mysql.ApplicationManager();
+        }
+        return this.applicationManager;
+    }
+
+    /**
+     * Returns a <code>ProfileManager</code> object for this
+     * <code>DatabaseManagement</code>.
+     *
+     * @return A <code>ProfileManager</code>  object.
+     * @see common.Profile 
+     */
+    @Override
+    public ProfileManager getProfileManager() {
+         if (this.profileManager != null) {
+            this.profileManager = new mysql.ProfileManager();
+        }
+        return this.profileManager;
+    }
+
+    @Override
+    public DegreeManager getDegreeManager() {
+        if (this.degreeManager != null) {
+            this.degreeManager = new mysql.DegreeManager();
+        }
+        return this.degreeManager;
+    }
+
+    @Override
+    public GradesManager getGradesManager() {
+        if (this.gradesManager != null) {
+            this.gradesManager = new mysql.GradesManager();
+        }
+        return this.gradesManager;
+    }
+
+    @Override
+    public LocalExpManager getlocalExpManager() {
+        if (this.localExpManager != null) {
+            this.localExpManager = new mysql.LocalExpManager();
+        }
+        return this.localExpManager;
+    }
+
+    @Override
+    public MediaManager getMediaManager() {
+        if (this.mediaManager != null) {
+            this.mediaManager = new mysql.MediaManager();
+        }
+        return this.mediaManager;
+    }
+
+    @Override
+    public NarrativeManager getNarrativeManager() {
+        if (this.narrativeManager != null) {
+            this.narrativeManager = new mysql.NarrativeManager();
+        }
+        return this.narrativeManager;
+    }
+
+    @Override
+    public SchActivityManager getSchActivityManager() {
+        if (this.schActivityManager != null) {
+            this.schActivityManager = new mysql.SchActivityManager();
+        }
+        return this.schActivityManager;
+    }
+
+    @Override
+    public SvcActivityManager getSvcActivityManager() {
+        if (this.svcActivityManager != null) {
+            this.svcActivityManager = new mysql.SvcActivityManager();
+        }
+        return this.svcActivityManager;
+    }
+
+    @Override
+    public WorkExpManager getWorkExpManager() {
+        if (this.workExpManager != null) {
+            this.workExpManager = new mysql.WorkExpManager();
+        }
+        return this.workExpManager;
+    }
+
+
+ }

@@ -1,0 +1,19 @@
+package database;
+
+import common.TeachingExp;
+import java.util.List;
+
+/**
+ * An <code>interface</code> that specified allowed operations on teaching 
+ * experience records in the database.
+ * 
+ * @author Gryphon Ayers (2019)
+ */
+public interface TeachingExpManager {
+    public TeachingExp getTeachingExp(int teachingExpID);
+    public List<TeachingExp> getTeachingExpsByApplication(int application);
+    public Integer insertTeachingExp(TeachingExp teachingExp);
+    public TeachingExp updateTeachingExp(TeachingExp teachingExp);
+    public boolean deleteTeachingExp(int teachingExpID);
+    public List<TeachingExp> getAllTeachingExps();
+}

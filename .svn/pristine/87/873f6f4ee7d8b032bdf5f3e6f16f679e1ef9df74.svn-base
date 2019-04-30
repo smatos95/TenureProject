@@ -1,0 +1,118 @@
+<%-- 
+    Document   : backgroundinfo
+    Created on : Feb 24, 2019, 2:18:28 PM
+               : Shane Panagakos (2019)
+    Author     : Jake Gordon (2019)
+--%>
+
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="common.BuUser"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Tenure Prep Form</title>
+        <link rel ="icon" href="../images/husky.png">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+    </head>
+  
+    <body bgcolor="#F4ECD9">
+        <script>
+                document.getElementsByName("dropbutton")[0].className = "dropdown-container active";   
+        </script>
+          <% HttpSession session1 = request.getSession(true);
+                    common.BuUser use = (common.BuUser) session1.getAttribute("user");
+                    %>
+        <div class="sidetabs">      
+            <!-- Tab buttons direct to appropriate forms -->
+            <form id='redirct_page' action='RedirectServlet' method='POST'>
+                <button class="tabbuttons" name="home"><i class="fa fa-home"></i> Home</button>
+                <button class="tabbuttons" name="cover"><i class ="fa fa-folder-open"></i> Cover Page</button>
+                <button class="tabbuttons" name="first"><i class="fa fa-address-card"></i> First Page</button>               
+            </form>
+            <!-- Dropdown button which displays submenus -->
+            <button class="dropdown-btn"><i class="fa fa-list-alt"></i> Background Information
+                <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="dropdown-container">
+                <form id='redirct_page' action='RedirectServlet' method='POST'>
+                    <button class="inDropdown" name="eduCred">Educational Credentials</button>
+                    <button class="inDropdown" name="teachFac">Teaching/Faculty</button>
+                    <button class="inDropdown" name="workExp">Other Work Experience</button>
+                    <button class="inDropdown" name="transcripts">Official Transcripts</button>
+                </form>
+            </div>
+            <form id='redirct_page' action='RedirectServlet' method='POST'>
+                <button class="tabbuttons" name="teaching"><i class="fa fa-users"></i> Teaching & Fulfillment </button>
+                <button class="tabbuttons" name="scholar"><i class="fa fa-line-chart"></i> Scholarly Growth</button>
+                <button class="tabbuttons" name="university"><i class="	fa fa-leanpub"></i> University & Community</button>  
+                <button class="tabbuttons" name="signature"><i class ="fa fa-pencil-square-o"></i> Signature Pages</button>
+            </form>
+           </div>
+        <div id="bgkInfo" class="tabcontent">
+
+            <div class="paper">
+                <div>
+                    <h1>Undergraduate</h1>
+                    <div class="fieldLayout">Institution
+                        <select>
+                            <option>Select your Institution</option>
+                        </select>
+                    </div>
+                    <div class="fieldLayout">Degree Awarded
+                        <select>
+                            <option>N/A</option>
+                        </select>
+                    </div>
+                    <div class="fieldLayout">Credits Received
+                        <input type="text" name="Credits"/>
+                    </div>
+                    <div class="fieldLayout">Major
+                        <select>
+                            <option>Select Your Major</option>
+                        </select>
+                    </div>
+                    <div class="fieldLayout">Minor
+                        <select>
+                            <option>Select Your Minor</option>
+                        </select>
+                    </div>
+                    <div class="fieldLayout">Field of Study
+                        <select>
+                            <option>Select Your Field of Study</option>
+                        </select>
+                    </div>
+                    <div class="fieldLayout">Attended From
+                        <input type="date"/>
+                    </div>
+                    <div class="fieldLayout">Attended To
+                        <input type="date"/>
+                    </div>
+                    <div class="fieldLayout">Date of Degree Conferral
+                        <input type="date"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+                    
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }           
+        </script>
+    </body>
+</html>

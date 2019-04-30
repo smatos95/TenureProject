@@ -1,0 +1,5 @@
+
+bool BULOGIN -->  true means BU ID used, false --> outside login
+BuUser bu_user --> null if not a BULOGIN, BuUser object if BULOGIN = true
+Application currentapp --> the application that the user has selected
+String apptype --> the type of application that the user is creating

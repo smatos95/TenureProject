@@ -1,0 +1,96 @@
+<%-- 
+    Document   : displayApps
+    Created on : Feb 28, 2019, 3:56:06 PM
+    Author     : Shane Panagakos (2019)
+    Author     : Riley Hughes (2019)
+--%>
+
+<%@page import="java.util.Iterator"%>
+<%@page import="java.util.Collection"%>
+<%@page import="common.Application"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Your Applications</title>
+        <link rel="stylesheet" href="styles/controlPage.css" type="text/css"/>
+
+        <!--
+        Inline CSS used to separate title and content from the display ass menu
+        -->
+        <style>
+            .header {font-size: 25px;
+                     text-align: center;
+                     background-color: maroon;
+                     display: block;
+                     border-top-left-radius: 20px;
+                     border-top-right-radius: 20px;
+                     box-shadow: 0 5px 5px rgba(0,0,0,0.15);
+                     color: #fff;
+                     width: auto;
+                     padding: 5px;
+                     height: 125px;}
+            .shadow{box-shadow: 5px 10px 18px  black;
+                    border-radius: 20px;}
+            .bg-image{
+                background-image:url("images/appBackground.jpg"); height: 100%;
+                background-position: center;
+                background-repeat: no-repeat;
+                background-size: cover;
+                filter: blur(3px);
+            }
+        </style>
+    </head>
+    <body>   
+        <div class="bg-image"></div>
+            <div id="display_apps" class="center-display-apps-content">
+                <div class ="shadow">
+                    <div class="display_apps_paper" style="background-color: #e3dfdf">
+                        <div class ="header">
+                            <center>   
+                                <div style ="font-size: 57px; margin-top: 3%;"><b>Select or Create an Application</b></div>        
+                            </center>
+                        </div>
+
+                        <center>
+                            <%
+                                // Get the user's apps (obtained in the GetApplicationsServlet)
+                                Collection<Application> apps = (Collection<Application>) request.getSession().getAttribute("apps");
+
+                                // If the user has apps,
+                                if (!(apps == null || apps.isEmpty())) {
+                            %>
+
+                            <form id='app_selector_form' action='SetApplicationServlet' method='POST'>
+                                <select id="display_app_appselect_dropdown" name='appselect'>
+                                    <%
+                                        // Go through the apps and add them as options to select from
+                                        Iterator<Application> ia = apps.iterator();
+                                        Application temp;
+                                        while (ia.hasNext()) {
+                                            temp = ia.next();
+                                    %>
+                                    <option value=<%=temp.getApplicationID()%>>
+                                        <%=temp.getApplicationType() + " application created on " + temp.getCreationDate().toString().substring(0, 10)%>
+                                    </option>
+                                    <%}%>
+                                </select>
+                                <input type='submit' name='submitchoice' id="display_app_submit_choice_button" value='SELECT' />
+                            </form>
+                            <%} else {%>
+                            <h3>You have no applications.</h3>
+                            <%}
+                            %>
+                            <form id="send_to_home_form" action="CreateApplicationServlet" method="POST">
+                                <input type="submit" id="display_app_new_tenure_button" value="Create New Tenure Application" name="tenure">
+                                <input type="submit" id="display_app_new_promotion_button" value="Create New Promotion Application" name="promotion">
+                            </form>
+                        </center>    
+                    </div>
+                </div>
+            </div>
+                            
+        
+    </body>
+</html>

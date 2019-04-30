@@ -1,0 +1,216 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package servlets;
+
+
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+/**
+ * Trampoline servlet to process redirect requests from JSP.
+ * 
+ * @author jtg79323
+ */
+@WebServlet(name = "RedirectServlet", urlPatterns = {"/RedirectServlet"})
+public class RedirectServlet extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        //clear one-page-only session variables
+        HttpSession sess = request.getSession(false);
+        if(sess != null) {
+            final Object lock = sess.getId().intern();
+            synchronized (lock) {
+                sess.removeAttribute("currentcred");
+            }
+            sess.removeAttribute("isPopup");
+        }
+        
+        if (request.getParameter("overview") != null)
+        {
+            request.getRequestDispatcher("jsp/home.jsp").forward(request, response);
+        }        
+        else if (request.getParameter("cover") != null)
+        {
+            request.getRequestDispatcher("jsp/coverpage.jsp").forward(request, response);
+        }
+        else if (request.getParameter("first") != null)
+        {
+            request.getRequestDispatcher("jsp/firstpage.jsp").forward(request, response);
+        }
+        else if (request.getParameter("background") != null)
+        {
+            request.getRequestDispatcher("jsp/backgroundinfo.jsp").forward(request, response);
+        }
+        else if (request.getParameter("teaching") != null)
+        {
+            request.getRequestDispatcher("jsp/teaching.jsp").forward(request, response);
+        }
+        else if (request.getParameter("scholar") != null)
+        {
+            request.getRequestDispatcher("jsp/scholarlygrowth.jsp").forward(request, response);
+        }
+        else if (request.getParameter("university") != null)
+        {
+            request.getRequestDispatcher("jsp/university.jsp").forward(request, response);
+        }
+        else if (request.getParameter("signature") != null)
+        {
+            request.getRequestDispatcher("jsp/signature.jsp").forward(request, response);
+        }
+        else if (request.getParameter("eduCred") != null)
+        {
+            request.getRequestDispatcher("jsp/educationalCred.jsp").forward(request, response);
+        }
+        else if (request.getParameter("teachFac") != null)
+        {
+            request.getRequestDispatcher("jsp/teachingFaculty.jsp").forward(request, response);
+        }
+        else if (request.getParameter("workExp") != null)
+        {
+            request.getRequestDispatcher("jsp/otherWorkExperience.jsp").forward(request, response);
+        }
+        else if (request.getParameter("transcripts") != null)
+        {
+            request.getRequestDispatcher("jsp/officialTranscripts.jsp").forward(request, response);
+        }
+        else if (request.getParameter("wordtest") != null)
+        {
+            request.getRequestDispatcher("jsp/wordtest.jsp").forward(request, response);
+        }
+        else if (request.getParameter("teachingNarrative") != null)
+        {
+            request.getRequestDispatcher("jsp/teachingNarrative.jsp").forward(request, response);
+        }
+        else if (request.getParameter("teachingHistory") != null)
+        {
+            request.getRequestDispatcher("jsp/BuTeachingHistory.jsp").forward(request, response);
+        }
+        else if (request.getParameter("studentEvaluations") != null)
+        {
+            request.getRequestDispatcher("jsp/studentEvaluations.jsp").forward(request, response);
+        }
+        else if (request.getParameter("fulfillmentProfessional") != null)
+        {
+            request.getRequestDispatcher("jsp/fulfillmentProfessional.jsp").forward(request, response);
+        }
+        else if (request.getParameter("timeActivities") != null)
+        {
+            request.getRequestDispatcher("jsp/timeActivities.jsp").forward(request, response);
+        }
+        else if (request.getParameter("Innovations") != null)
+        {
+            request.getRequestDispatcher("jsp/Innovations.jsp").forward(request, response);
+        }
+        else if (request.getParameter("Activities") != null)
+        {
+            request.getRequestDispatcher("jsp/Activities.jsp").forward(request, response);
+        }
+        else if (request.getParameter("uniCommNarrative") != null)
+        {
+            request.getRequestDispatcher("jsp/uniCommNarrative.jsp").forward(request, response);
+        }
+        else if (request.getParameter("committeeService") != null)
+        {
+            request.getRequestDispatcher("jsp/committeeService.jsp").forward(request, response);
+        }
+        else if (request.getParameter("studentOrgAdvisement") != null)
+        {
+            request.getRequestDispatcher("jsp/studentOrgAdvisement.jsp").forward(request, response);
+        }
+        else if (request.getParameter("otherContributions") != null)
+        {
+            request.getRequestDispatcher("jsp/otherContributions.jsp").forward(request, response);
+        }
+        else if (request.getParameter("communityContributions") != null)
+        {
+            request.getRequestDispatcher("jsp/communityContributions.jsp").forward(request, response);
+        }
+        else if (request.getParameter("tenureSigPage") != null)
+        {
+            request.getRequestDispatcher("jsp/tenureSigPage.jsp").forward(request, response);
+        }
+        else if (request.getParameter("deptNarrativeSigPage") != null)
+        {
+            request.getRequestDispatcher("jsp/deptNarrativeSigPage.jsp").forward(request, response);
+        }
+        else if (request.getParameter("chairNarrativeSigPage") != null)
+        {
+            request.getRequestDispatcher("jsp/chairNarrativeSigPage.jsp").forward(request, response);
+        }
+        else  if (request.getParameter("specialNote") != null)
+        {
+            request.getRequestDispatcher("jsp/specialNote.jsp").forward(request, response);
+        }
+        else  if (request.getParameter("about") != null)
+        {
+            request.getRequestDispatcher("jsp/about.jsp").forward(request, response);
+        }
+        else if (request.getParameter("viewtenure") != null)
+        {
+            request.getRequestDispatcher("jsp/myApplication.jsp").forward(request, response);
+        } 
+          /*if (request.getParameter("appSelect") != null)
+        {
+            request.getRequestDispatcher("jsp/myApplication.jsp").forward(request, response);
+        }*/
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+}
